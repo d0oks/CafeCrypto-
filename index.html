@@ -1061,6 +1061,48 @@ footer{border-top:1px solid var(--border-red);padding:16px 20px;display:flex;fle
 html,body{max-width:100%;overflow-x:hidden;}
 *{max-width:100%;}
 img,canvas{max-width:100%;}
+
+/* DÉFI DU JOUR : pronostic (F&G) + quiz (base de connaissances) */
+.pred-box{margin:12px 14px 14px;padding:14px;border-radius:14px;border:1px solid transparent;background:linear-gradient(var(--s1),var(--s1)) padding-box,linear-gradient(135deg,var(--gold),var(--red),var(--purple)) border-box;box-shadow:0 10px 28px -18px var(--mood-accent-soft)}
+.pred-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.pred-tag{font-family:var(--mono);font-size:.62rem;font-weight:700;letter-spacing:.4px;color:var(--gold)}
+.pred-reward{font-family:var(--mono);font-size:.62rem;font-weight:700;padding:3px 9px;border-radius:20px;color:#1a1204;background:linear-gradient(135deg,var(--gold),#fcd34d);animation:predPulse 2.4s ease-in-out infinite}
+@keyframes predPulse{0%,100%{box-shadow:0 0 0 0 rgba(240,180,41,.45)}50%{box-shadow:0 0 0 6px rgba(240,180,41,0)}}
+@media(prefers-reduced-motion:reduce){.pred-reward{animation:none}}
+.pred-q{font-size:.78rem;color:var(--muted2)}
+.pred-q b{color:var(--text)}
+.pred-price{font-family:var(--mono);font-size:1.7rem;font-weight:700;margin:2px 0 12px;background:linear-gradient(90deg,var(--gold),var(--cyan));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.pred-row{display:flex;gap:8px}
+.pred-btn{flex:1;min-height:46px;border-radius:12px;border:1px solid var(--b2);background:var(--s2);font:inherit;font-weight:700;font-size:.8rem;cursor:pointer;transition:transform .15s,box-shadow .2s,border-color .2s}
+.pred-btn:hover:not(:disabled){transform:translateY(-2px)}
+.pred-btn:disabled{opacity:.5;cursor:default}
+.pred-btn.up{color:var(--green)}.pred-btn.up:hover:not(:disabled){border-color:var(--green);box-shadow:0 8px 18px -10px var(--green)}
+.pred-btn.dn{color:var(--red)}.pred-btn.dn:hover:not(:disabled){border-color:var(--red);box-shadow:0 8px 18px -10px var(--red)}
+.pred-gauge{position:relative;height:10px;border-radius:6px;overflow:hidden;display:flex;margin:4px 0 12px;background:var(--s3)}
+.pred-gauge .zone{flex:1}.pred-gauge .zone.dn{background:linear-gradient(90deg,rgba(239,68,68,.55),rgba(239,68,68,.1))}.pred-gauge .zone.up{background:linear-gradient(90deg,rgba(34,197,94,.1),rgba(34,197,94,.55))}
+.pred-gauge .mid{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--text);opacity:.6}
+.pred-gauge .dot{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;border:2px solid #fff;transition:left .6s ease}
+.pred-gauge .dot.ok{background:var(--green)}.pred-gauge .dot.ko{background:var(--red)}
+.pred-gauge{overflow:visible}.pred-gauge .zone:first-child{border-radius:6px 0 0 6px}.pred-gauge .zone:nth-child(2){border-radius:0 6px 6px 0}
+.pred-live{font-family:var(--mono);font-size:.7rem;font-weight:600}
+.pred-live.ok,.pred-last.win{color:var(--green)}.pred-live.ko,.pred-last.lose{color:var(--red)}
+.pred-last{font-size:.68rem;margin-top:10px}
+.pred-foot{font-family:var(--mono);font-size:.58rem;color:var(--muted2);margin-top:8px}
+.kb-quiz{margin-top:18px;padding-top:14px;border-top:1px dashed var(--b2)}
+.kb-quiz-hdr{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.kb-quiz-title{font-size:.85rem;font-weight:700;color:var(--text)}
+.kb-quiz-sub{font-family:var(--mono);font-size:.6rem;color:var(--muted2);margin:4px 0 12px}
+.dd-q{font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:10px;line-height:1.5}
+.dd-sub,.dd-stats{font-family:var(--mono);font-size:.62rem;color:var(--muted2);margin-top:8px}
+.dd-opts{display:flex;flex-direction:column;gap:6px}
+.dd-btn{min-height:40px;padding:9px 12px;border-radius:10px;border:1px solid var(--b2);background:var(--s2);color:var(--text);font:inherit;font-size:.76rem;font-weight:600;cursor:pointer;text-align:left;transition:border-color .2s,background .2s}
+.dd-btn:hover:not(:disabled){border-color:var(--purple)}.dd-btn:disabled{cursor:default}
+.dd-btn.ok{border-color:var(--green);background:rgba(34,197,94,.12)}.dd-btn.ko{border-color:var(--red);background:rgba(239,68,68,.12)}
+.dd-btn.go{margin-top:10px;width:100%;text-align:center;background:linear-gradient(135deg,var(--purple),var(--cyan));color:#0a0d14;border:none}
+.dd-exp{margin-top:10px;padding:8px 10px;border-left:2px solid var(--gold);color:var(--muted2);font-size:.72rem;line-height:1.5}
+.dd-prog{height:3px;background:var(--s3);border-radius:2px;margin-bottom:10px}
+.dd-prog i{display:block;height:100%;background:var(--gold);border-radius:2px;transition:width .3s}
+.dd-score{font-size:1.6rem;font-weight:700;color:var(--gold);font-family:var(--mono)}
 </style>
 </head>
 <body>
@@ -1249,6 +1291,11 @@ img,canvas{max-width:100%;}
             <button class="c-arrow" id="kbCarouselNextBtn">›</button>
           </div>
         </div>
+        <div class="kb-quiz">
+          <div class="kb-quiz-hdr"><div class="kb-quiz-title">🧠 Quiz du jour</div><span class="pill p-gold cafe-pts"></span></div>
+          <div class="kb-quiz-sub">5 questions · 5/5 = +25 ☕</div>
+          <div id="ddQuiz"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1295,7 +1342,7 @@ img,canvas{max-width:100%;}
 
   <div class="fng-section">
     <div class="card">
-      <div class="card-hdr"><div class="card-title">😨 Fear & Greed</div></div>
+      <div class="card-hdr"><div class="card-title">😨 Fear & Greed</div><span class="pill p-gold cafe-pts"></span></div>
       <div class="fng-body">
         <svg class="fng-arc" viewBox="0 0 120 60" width="80" height="42">
           <defs><linearGradient id="ag" x1="0%" x2="100%" y1="0%" y2="0%"><stop offset="0%" stop-color="#ef4444"/><stop offset="30%" stop-color="#f0b429"/><stop offset="65%" stop-color="#22c55e"/><stop offset="100%" stop-color="#38bdf8"/></linearGradient></defs>
@@ -1317,6 +1364,7 @@ img,canvas{max-width:100%;}
         <div class="fng-history-title">Historique · 7 derniers jours</div>
         <canvas class="fng-history-chart" id="fngHistoryChart"></canvas>
       </div>
+      <div class="pred-box" id="ddPred"></div>
     </div>
   </div>
 
@@ -4374,6 +4422,171 @@ async function searchAddress(){
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════
+// DÉFI DU JOUR : PRONOSTIC BTC (Fear & Greed) + QUIZ (Base de connaissances) + POINTS ☕
+// ═══════════════════════════════════════════════
+const todayUTC=()=>new Date().toISOString().slice(0,10);
+const yesterdayUTC=()=>new Date(Date.now()-864e5).toISOString().slice(0,10);
+const ddLoad=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}};
+const ddSave=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){console.warn('Stockage indisponible',e);}};
+
+let cafePts=+ddLoad('cafeCryptoPoints',0)||0;
+const CAFE_RANKS=[[500,'Maître torréfacteur'],[250,'Barista'],[100,'Cappuccino'],[25,'Expresso'],[0,'Grain de café']];
+function renderCafe(){
+  const rk=CAFE_RANKS.find(r=>cafePts>=r[0])[1];
+  document.querySelectorAll('.cafe-pts').forEach(e=>{e.textContent='☕ '+cafePts+' · '+rk;});
+}
+function addCafe(n,why){cafePts+=n;ddSave('cafeCryptoPoints',cafePts);renderCafe();showNotification('+'+n+' ☕ gagnés',why,'☕',6000);}
+
+// ── Pronostic ──
+let predState=ddLoad('cafeCryptoPred',null);
+let predStats=ddLoad('cafeCryptoPredStats',{w:0,l:0,s:0,best:0});
+const predGain=streakAfterWin=>10+Math.min(Math.max(streakAfterWin-1,0),5)*2;
+
+async function resolvePred(){
+  if(!predState||predState.done||predState.date>=todayUTC())return;
+  let close=null;
+  try{
+    const t=Date.parse(predState.date+'T00:00:00Z');
+    const r=await fetch(`https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&startTime=${t}&limit=1`);
+    if(r.ok){const k=await r.json();if(k[0])close=parseFloat(k[0][4]);}
+  }catch(e){console.warn('Pronostic : clôture indisponible',e);}
+  if(!close)return;
+  const win=(predState.choice==='up')===(close>predState.ref);
+  Object.assign(predState,{done:true,close,win,pts:0});
+  if(win){predStats.w++;predStats.s++;predStats.best=Math.max(predStats.best,predStats.s);predState.pts=predGain(predStats.s);}
+  else{predStats.l++;predStats.s=0;}
+  ddSave('cafeCryptoPred',predState);ddSave('cafeCryptoPredStats',predStats);
+  if(win)addCafe(predState.pts,'Pronostic gagné ! BTC a clôturé à '+fmtP(close));
+  else showNotification('Pronostic perdu','BTC a clôturé à '+fmtP(close),'☕',6000);
+}
+
+function untilClose(){
+  const n=new Date(),e=Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()+1);
+  const m=Math.max(0,Math.round((e-n)/6e4));return Math.floor(m/60)+'h'+String(m%60).padStart(2,'0');
+}
+
+function renderPred(){
+  const el=$('ddPred');if(!el)return;
+  const today=todayUTC(),live=btcUsd;
+  const foot=`<div class="pred-foot">${predStats.w} gagné${predStats.w>1?'s':''} · ${predStats.l} perdu${predStats.l>1?'s':''} · série ${predStats.s} · record ${predStats.best}</div>`;
+  if(predState&&predState.date===today){
+    const up=predState.choice==='up';
+    const d=live>0?(live-predState.ref)/predState.ref*100:null;
+    const ok=d!=null&&(up?d>0:d<0);
+    const pos=d==null?50:50+Math.max(-3,Math.min(3,d))/3*46;
+    el.innerHTML=`<div class="pred-top"><span class="pred-tag">🎯 PRONOSTIC DU JOUR</span><span class="pred-reward">Pari posé</span></div>
+      <div class="pred-q">Tu paries sur <b>${up?'▲ au-dessus':'▼ en dessous'}</b> de</div>
+      <div class="pred-price">${fmtP(predState.ref)}</div>
+      <div class="pred-gauge"><i class="zone dn"></i><i class="zone up"></i><i class="mid"></i><i class="dot ${ok?'ok':'ko'}" style="left:${pos}%"></i></div>
+      <div class="pred-live ${d==null?'':(ok?'ok':'ko')}">${d==null?'…':fmtP(live)+' · '+fmtPct(d)+' — '+(ok?'tu es dans le vrai':'tu es à contre-courant')}</div>
+      <div class="pred-foot">Clôture dans ${untilClose()} (00h00 UTC) · gain si gagné : +${predGain(predStats.s+1)} ☕</div>${foot}`;
+    return;
+  }
+  let last='';
+  if(predState&&predState.done)last=`<div class="pred-last ${predState.win?'win':'lose'}">Dernier pari ${predState.win?'gagné (+'+predState.pts+' ☕)':'perdu'} · ${predState.choice==='up'?'▲':'▼'} ${fmtP(predState.ref)} → clôture ${fmtP(predState.close)}</div>`;
+  else if(predState)last='<div class="pred-last">Résultat du dernier pari en attente…</div>';
+  el.innerHTML=`<div class="pred-top"><span class="pred-tag">🎯 PRONOSTIC DU JOUR</span><span class="pred-reward">+${predGain(predStats.s+1)} ☕</span></div>
+    <div class="pred-q">BTC finira-t-il la journée au-dessus de</div>
+    <div class="pred-price">${live>0?fmtP(live):'…'}</div>
+    <div class="pred-row"><button class="pred-btn up" data-dir="up" ${live>0?'':'disabled'}>▲ Au-dessus</button><button class="pred-btn dn" data-dir="down" ${live>0?'':'disabled'}>▼ En dessous</button></div>
+    ${last}${foot}`;
+}
+
+function votePred(dir){
+  if(!(btcUsd>0)||(predState&&predState.date===todayUTC()))return;
+  predState={date:todayUTC(),ref:Math.round(btcUsd*100)/100,choice:dir,done:false};
+  ddSave('cafeCryptoPred',predState);renderPred();
+}
+
+// ── Quiz (niveau intermédiaire/avancé) ── [question, options, index bonne réponse, explication]
+const QUIZ_POOL=[
+["Tous les combien de blocs la difficulté de minage de Bitcoin est-elle réajustée ?",["144","1 008","2 016","210 000"],2,"2 016 blocs, soit environ deux semaines à 10 minutes par bloc."],
+["Quelle récompense par bloc reçoivent les mineurs Bitcoin depuis le halving d'avril 2024 ?",["6,25 BTC","3,125 BTC","1,5625 BTC","12,5 BTC"],1,"C'était le 4e halving, au bloc 840 000."],
+["Que devient la « base fee » depuis l'EIP-1559 sur Ethereum ?",["Elle est versée aux validateurs","Elle est brûlée","Elle va à la Fondation Ethereum","Elle est redistribuée aux stakers"],1,"Brûler la base fee peut rendre l'ETH déflationniste quand l'activité est forte."],
+["Quel modèle comptable utilise Bitcoin ?",["Comptes et soldes","UTXO","Sharding","Rollup"],1,"Chaque transaction consomme des sorties non dépensées (UTXO) et en crée de nouvelles."],
+["Que désigne le MEV ?",["Un standard de token","La valeur extractible en réordonnant les transactions d'un bloc","Une unité de minage","Un type de stablecoin"],1,"Maximal Extractable Value : sandwich attacks, arbitrages, liquidations…"],
+["Le trilemme de la blockchain oppose…",["Prix, volume, liquidité","Sécurité, décentralisation, scalabilité","Vitesse, coût, interface","Offre, demande, inflation"],1,"Il est difficile d'optimiser les trois à la fois sur une L1."],
+["Quel mécanisme Solana ajoute-t-il à la preuve d'enjeu pour horodater les événements ?",["Proof of Space","Proof of Burn","Proof of History","Proof of Capacity"],2,"Une horloge cryptographique qui ordonne les transactions avant consensus."],
+["Qu'est-ce que l'impermanent loss ?",["Les frais d'un DEX","Une perte due à un hack","La perte latente d'un fournisseur de liquidité quand les prix relatifs varient","Une perte de clés privées"],2,"Elle se compare au simple fait de garder les tokens dans son wallet."],
+["Avec un funding rate positif sur un contrat perpétuel…",["Les shorts paient les longs","Les longs paient les shorts","L'exchange paie tout le monde","Le contrat expire"],1,"Un funding élevé signale souvent un marché surchargé en positions longues."],
+["Un ZK-rollup est…",["Un wallet matériel","Un L2 qui prouve la validité des transactions par preuve à divulgation nulle","Un stablecoin","Un exchange centralisé"],1,"Une seule preuve compacte est publiée sur la L1."],
+["Quelle mise à jour de Bitcoin (nov. 2021) a introduit les signatures Schnorr ?",["SegWit","Taproot","Lightning","CoinJoin"],1,"Taproot améliore la confidentialité et l'efficacité des scripts."],
+["En quelle année SegWit a-t-il été activé sur Bitcoin ?",["2015","2017","2019","2021"],1,"Août 2017, après une longue bataille sur la taille des blocs."],
+["Quel exchange, alors le plus grand du monde, a fait faillite en 2014 ?",["Bitfinex","Mt. Gox","Coincheck","QuadrigaCX"],1,"Mt. Gox a perdu environ 850 000 BTC."],
+["Quel stablecoin algorithmique a perdu son ancrage en mai 2022 et entraîné LUNA ?",["DAI","UST","FRAX","USDD"],1,"L'effondrement a effacé des dizaines de milliards de dollars en quelques jours."],
+["Que mesure la TVL d'un protocole DeFi ?",["Le volume de trading sur 24 h","La valeur totale des actifs déposés dans le protocole","Le nombre de transactions","Les frais payés au total"],1,"Total Value Locked. Attention : elle est exprimée en prix et varie avec le marché."],
+["Que mesure la dominance de Bitcoin ?",["La part des BTC minés","La part de BTC dans la capitalisation totale du marché","La part du volume sur Binance","Le nombre de nœuds"],1,"Quand elle baisse, l'argent se déplace souvent vers les altcoins."],
+["Quel standard définit les tokens fongibles sur Ethereum ?",["ERC-721","ERC-1155","ERC-20","ERC-4337"],2,"ERC-721 = NFT, ERC-1155 = multi-token, ERC-4337 = abstraction de compte."],
+["Qu'est-ce que le slippage ?",["Le délai d'un bloc","L'écart entre le prix attendu et le prix exécuté","Les frais de gas","Une perte de liquidité"],1,"Il augmente avec les gros ordres sur les pools peu liquides."],
+["Le Lightning Network sert à…",["Créer des NFT sur Bitcoin","Accélérer les paiements via des canaux hors chaîne","Miner plus vite","Remplacer le halving"],1,"Seule l'ouverture et la fermeture des canaux passent sur la blockchain."],
+["Que signifie « hash rate » ?",["Le prix du minage","La puissance de calcul totale du réseau","Le nombre de wallets","Le nombre de BTC en circulation"],1,"Un hash rate élevé renforce la sécurité du réseau."]
+];
+
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function dailyQuiz(){
+  const r=mulberry(parseInt(todayUTC().replace(/-/g,''),10));
+  const idx=QUIZ_POOL.map((_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+  return idx.slice(0,5).map(i=>{
+    const [q,o,a,e]=QUIZ_POOL[i];
+    const ord=o.map((_,k)=>k);
+    for(let k=ord.length-1;k>0;k--){const j=Math.floor(r()*(k+1));[ord[k],ord[j]]=[ord[j],ord[k]];}
+    return{q,e,o:ord.map(k=>o[k]),a:ord.indexOf(a)};
+  });
+}
+
+const QUIZ_BONUS=25;
+let quizState=ddLoad('cafeCryptoQuiz',{last:'',score:0,streak:0,played:0});
+let quizRun=null;
+const quizMsg=sc=>sc===5?'Sans faute, barista confirmé ☕':sc>=3?'Un bon café bien serré.':'Un petit expresso de révision ?';
+
+function renderQuiz(){
+  const el=$('ddQuiz');if(!el)return;
+  const st=`<div class="dd-stats">Série : ${quizState.streak} jour${quizState.streak>1?'s':''} · ${quizState.played} partie${quizState.played>1?'s':''}</div>`;
+  if(!quizRun&&quizState.last===todayUTC()){
+    el.innerHTML=`<div class="dd-score">${quizState.score}/5</div><div class="dd-q">${quizMsg(quizState.score)}${quizState.score===5?' <b style="color:var(--gold)">+'+QUIZ_BONUS+' ☕</b>':''}</div><div class="dd-sub">Nouvelles questions demain à 00h00 UTC.</div>${st}`;return;
+  }
+  if(!quizRun){
+    el.innerHTML=`<div class="dd-q">Niveau intermédiaire : 5 questions, une seule partie par jour.</div><button class="dd-btn go" data-act="start">Commencer le quiz</button>${st}`;return;
+  }
+  const r=quizRun,q=r.qs[r.i],answered=r.sel!=null;
+  el.innerHTML=`<div class="dd-prog"><i style="width:${(r.i+(answered?1:0))/5*100}%"></i></div>
+    <div class="dd-sub" style="margin:0 0 6px">Question ${r.i+1}/5</div>
+    <div class="dd-q">${escapeHTML(q.q)}</div>
+    <div class="dd-opts">${q.o.map((o,k)=>`<button class="dd-btn ${answered?(k===q.a?'ok':(k===r.sel?'ko':'')):''}" data-ans="${k}" ${answered?'disabled':''}>${escapeHTML(o)}</button>`).join('')}</div>
+    ${answered?`<div class="dd-exp">${r.sel===q.a?'✔ Bonne réponse. ':'✘ Raté. '}${escapeHTML(q.e)}</div><button class="dd-btn go" data-act="next">${r.i<4?'Question suivante':'Voir mon score'}</button>`:''}`;
+}
+
+function quizFinish(){
+  const sc=quizRun.score;
+  quizState={last:todayUTC(),score:sc,streak:quizState.last===yesterdayUTC()?quizState.streak+1:1,played:quizState.played+1};
+  ddSave('cafeCryptoQuiz',quizState);quizRun=null;renderQuiz();
+  if(sc===5)addCafe(QUIZ_BONUS,'5/5 au quiz du jour, bravo !');
+}
+
+function initDaily(){
+  $('ddPred').addEventListener('click',e=>{const b=e.target.closest('[data-dir]');if(b)votePred(b.dataset.dir);});
+  $('ddQuiz').addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.act==='start'){quizRun={qs:dailyQuiz(),i:0,score:0,sel:null};renderQuiz();}
+    else if(b.dataset.ans!=null&&quizRun&&quizRun.sel==null){
+      quizRun.sel=+b.dataset.ans;
+      if(quizRun.sel===quizRun.qs[quizRun.i].a)quizRun.score++;
+      renderQuiz();
+    }else if(b.dataset.act==='next'){
+      quizRun.i++;quizRun.sel=null;
+      if(quizRun.i>=5)quizFinish();else renderQuiz();
+    }
+  });
+  renderCafe();renderPred();renderQuiz();
+  resolvePred().then(renderPred);
+  const t=setInterval(()=>{if(btcUsd>0){clearInterval(t);renderPred();}},500);
+  setTimeout(()=>clearInterval(t),20000);
+  setInterval(renderPred,60000);
+}
+
 const BREW_SUB_MESSAGES=['Le marché infuse…','On tire les prix du percolateur…','Chargement des grains numériques…','Un instant, ça chauffe…'];
 let brewHidden=false,brewSubTimer=null;
 function rotateBrewSub(){
@@ -4398,6 +4611,7 @@ attachRowClickHandler('newListingsList');
 setupSearch();
 initStaticControls();
 initKnowledgeBase();
+initDaily();
 startLogoVapors();
 renderPortfolio();
 renderEvents();
