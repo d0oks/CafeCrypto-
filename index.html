@@ -261,14 +261,17 @@ section{scroll-margin-top:200px;}
 .portfolio-add-btn:hover{border-color:var(--red);background:rgba(220,38,38,.06);}
 
 /* SECTIONS CRYPTO */
-.tri-marquee{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);}
-.tri-grid{display:flex;width:max-content;animation:triScroll 80s linear infinite;}
-.tri-set{display:flex;gap:14px;padding-right:14px;align-items:flex-start;}
-.tri-set .crypto-section-card{flex:0 0 min(340px,84vw);width:min(340px,84vw);}
-@keyframes triScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.tri-marquee.paused .tri-grid{animation-play-state:paused;}
-@media(hover:hover){.tri-marquee:hover .tri-grid{animation-play-state:paused;}}
-@media(prefers-reduced-motion:reduce){.tri-grid{animation:none;}.tri-marquee{overflow-x:auto;}.tri-set+.tri-set{display:none;}}
+.tri-grid{display:grid;grid-template-columns:1fr;gap:16px;animation:fadeUp .4s ease both;}
+.tri-dots{display:none;}
+@media(max-width:767px){
+  .tri-viewport{overflow:hidden;border-radius:16px;}
+  .tri-grid{display:flex;gap:0;transition:transform .6s ease;transform:translateX(calc(var(--tri-i,0)*-100%));}
+  .tri-grid>.crypto-section-card{flex:0 0 100%;min-width:0;}
+  .tri-dots{display:flex;justify-content:center;gap:7px;margin-top:10px;}
+  .tri-dots i{width:7px;height:7px;border-radius:50%;background:var(--b2);transition:all .3s;}
+  .tri-dots i.on{background:var(--red);width:18px;border-radius:4px;}
+}
+@media(prefers-reduced-motion:reduce){.tri-grid{transition:none;}}
 .crypto-section-card{
   background:linear-gradient(180deg,var(--s1) 0%,var(--card-gradient-end) 100%);
   border:1px solid var(--border-red);border-radius:16px;overflow:hidden;
@@ -985,6 +988,7 @@ footer{border-top:1px solid var(--border-red);padding:16px 20px;display:flex;fle
   .col-right{min-width:0;}
   .page{padding:36px 32px 60px;max-width:1280px;}
   .logo-bar{height:120px;backdrop-filter:none;background:var(--bg);}
+  .tri-grid{grid-template-columns:repeat(3,1fr);gap:14px;}
   .logo-text-main{font-size:2.6rem;}
   .theme-btn{bottom:20px;right:20px;}
   .notification{top:184px;right:20px;left:auto;max-width:350px;}
@@ -1180,9 +1184,8 @@ img,canvas{max-width:100%;}
 <div class="col-left">
 
   <div class="crypto-sections">
-    <div class="tri-marquee" id="triMarquee">
-      <div class="tri-grid" id="triGrid">
-        <div class="tri-set" id="triSet">
+    <div class="tri-viewport" id="triViewport">
+    <div class="tri-grid" id="triGrid">
       <div class="crypto-section-card">
         <div class="crypto-section-hdr">
           <div class="card-title">🔥 Tendances</div>
@@ -1216,10 +1219,8 @@ img,canvas{max-width:100%;}
         <div id="loseList"><div class="loader"><div class="spinner"></div>Chargement…</div></div>
         <button class="see-more-btn" data-list="loseList">Voir plus ▼</button>
       </div>
-        </div>
-        <div class="tri-set" id="triClone" aria-hidden="true"></div>
-      </div>
     </div>
+    <div class="tri-dots" id="triDots"><i class="on"></i><i></i><i></i></div>
   </div>
 
   <div class="top100-section">
@@ -1860,7 +1861,7 @@ async function loadSparklinesForVisible(coins){
   // Le fetch principal (CoinGecko) fournit déjà les sparklines 7j pour la plupart des cryptos.
   // On ne complète ici que les cas rares où elles manquent (ex: source de secours CoinPaprika).
   const ids=coins.map(c=>c.id).filter(id=>!sparklineCache[id]||sparklineCache[id].length<10);
-  if(!ids.length){renderAllSparklines();renderCryptoRowSparklines($('trendList'));renderCryptoRowSparklines($('winList'));renderCryptoRowSparklines($('loseList'));syncTriClone();return;}
+  if(!ids.length){renderAllSparklines();renderCryptoRowSparklines($('trendList'));renderCryptoRowSparklines($('winList'));renderCryptoRowSparklines($('loseList'));return;}
   const limited=ids.slice(0,8);
   await Promise.all(limited.map(async id=>{
     try{
@@ -1874,7 +1875,7 @@ async function loadSparklinesForVisible(coins){
     }catch(e){}
   }));
   try{localStorage.setItem('cafeCryptoSparklines',JSON.stringify(sparklineCache));}catch(e){}
-  renderAllSparklines();renderCryptoRowSparklines($('trendList'));renderCryptoRowSparklines($('winList'));renderCryptoRowSparklines($('loseList'));syncTriClone();
+  renderAllSparklines();renderCryptoRowSparklines($('trendList'));renderCryptoRowSparklines($('winList'));renderCryptoRowSparklines($('loseList'));
 }
 
 function renderAllSparklines(){
@@ -2261,16 +2262,6 @@ function buildTriSections(coins){
   renderLoseList(loseData.slice(0,5));
 }
 
-// Copie du jeu de cartes pour une boucle de défilement sans coupure
-let _triSync=0;
-function syncTriClone(){
-  cancelAnimationFrame(_triSync);
-  _triSync=requestAnimationFrame(()=>{
-    const set=$('triSet'),cl=$('triClone');if(!set||!cl)return;
-    cl.innerHTML=set.innerHTML.replace(/\sid="[^"]*"/g,'');
-    renderCryptoRowSparklines(cl);
-  });
-}
 function renderCryptoRowSparklines(container){
   if(!container)return;
   container.querySelectorAll('.cr-spark-inner canvas').forEach(cv=>{
@@ -2278,9 +2269,9 @@ function renderCryptoRowSparklines(container){
     if(data&&data.length>1)drawSparkline(cv,data);
   });
 }
-function renderTrendList(data){$('trendList').innerHTML=data.length?data.map((c,i)=>buildCryptoRow(c,i+1)).join(''):'<div class="loader-error">Aucune donnée</div>';renderCryptoRowSparklines($('trendList'));syncTriClone();}
-function renderWinList(data){$('winList').innerHTML=data.length?data.map((c,i)=>buildCryptoRow(c,i+1)).join(''):'<div class="loader-error">Aucune donnée</div>';renderCryptoRowSparklines($('winList'));syncTriClone();}
-function renderLoseList(data){$('loseList').innerHTML=data.length?data.map((c,i)=>buildCryptoRow(c,i+1)).join(''):'<div class="loader-error">Aucune donnée</div>';renderCryptoRowSparklines($('loseList'));syncTriClone();}
+function renderTrendList(data){$('trendList').innerHTML=data.length?data.map((c,i)=>buildCryptoRow(c,i+1)).join(''):'<div class="loader-error">Aucune donnée</div>';renderCryptoRowSparklines($('trendList'));}
+function renderWinList(data){$('winList').innerHTML=data.length?data.map((c,i)=>buildCryptoRow(c,i+1)).join(''):'<div class="loader-error">Aucune donnée</div>';renderCryptoRowSparklines($('winList'));}
+function renderLoseList(data){$('loseList').innerHTML=data.length?data.map((c,i)=>buildCryptoRow(c,i+1)).join(''):'<div class="loader-error">Aucune donnée</div>';renderCryptoRowSparklines($('loseList'));}
 
 let trendExpanded=false,winExpanded=false,loseExpanded=false;
 function showMore(sectionId){
@@ -4681,21 +4672,27 @@ rotateBrewSub();
 attachRowClickHandler('trendList');
 attachRowClickHandler('winList');
 attachRowClickHandler('loseList');
-attachRowClickHandler('triClone');
+// Mobile uniquement : les 3 sections défilent une par une (Tendances → Gagnants → Perdants), toutes les 2 s
 (function(){
-  const mq=$('triMarquee');if(!mq)return;
-  let t=0;
-  mq.addEventListener('touchstart',()=>{clearTimeout(t);mq.classList.add('paused');},{passive:true});
-  const rel=()=>{clearTimeout(t);t=setTimeout(()=>mq.classList.remove('paused'),4000);};
-  mq.addEventListener('touchend',rel,{passive:true});mq.addEventListener('touchcancel',rel,{passive:true});
-  // La copie ne doit pas avoir son propre état : ses clics sont relayés vers l'original
-  const cl=$('triClone');
-  if(cl)cl.addEventListener('click',e=>{
-    const tab=e.target.closest('.tab[data-period]');
-    if(tab){const o=document.querySelector('#triSet .tab[data-list="'+tab.dataset.list+'"][data-period="'+tab.dataset.period+'"]');if(o)o.click();e.stopPropagation();return;}
-    const more=e.target.closest('.see-more-btn');
-    if(more){showMore(more.dataset.list);e.stopPropagation();}
-  });
+  const grid=$('triGrid'),vp=$('triViewport'),dots=$('triDots');if(!grid||!vp)return;
+  const mq=window.matchMedia('(max-width:767px)');
+  let i=0,pause=0;
+  const go=n=>{i=(n+3)%3;grid.style.setProperty('--tri-i',i);if(dots)[...dots.children].forEach((d,k)=>d.classList.toggle('on',k===i));};
+  const hold=ms=>{pause=Date.now()+ms;};
+  setInterval(()=>{
+    if(!mq.matches){if(i!==0)go(0);return;}   // ordinateur : disposition d'origine, rien ne bouge
+    if(Date.now()<pause||document.hidden)return;
+    go(i+1);
+  },2000);
+  let x0=null;
+  vp.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;hold(6000);},{passive:true});
+  vp.addEventListener('touchend',e=>{
+    if(x0==null||!mq.matches)return;
+    const dx=e.changedTouches[0].clientX-x0;x0=null;
+    if(Math.abs(dx)>40)go(i+(dx<0?1:-1));
+    hold(6000);
+  },{passive:true});
+  if(dots)dots.addEventListener('click',e=>{const k=[...dots.children].indexOf(e.target);if(k>=0){go(k);hold(6000);}});
 })();
 attachRowClickHandler('top100List');
 attachRowClickHandler('arbList');
