@@ -648,6 +648,7 @@ section{scroll-margin-top:200px;}
 .mood-line{padding:10px 16px;border-top:1px solid var(--border-red);border-bottom:1px solid var(--border-red);font-size:.72rem;color:var(--muted2);background:var(--s2);}
 .voice-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:calc(100% - 32px);margin:12px 16px 0;padding:10px;border-radius:10px;border:1px solid var(--b2);background:var(--s2);color:var(--red);font-family:var(--mono);font-size:.66rem;font-weight:600;cursor:pointer;transition:all .2s;}
 .voice-hint{text-align:center;font-family:var(--mono);font-size:.56rem;color:var(--muted);margin:6px 16px 0;}
+.voice-pick{display:block;width:calc(100% - 32px);margin:8px 16px 0;padding:8px;border-radius:10px;border:1px solid var(--b2);background:var(--s2);color:var(--text);font-family:var(--mono);font-size:.62rem;}
 .voice-btn:hover{border-color:var(--red);background:rgba(220,38,38,.07);}
 .voice-btn.speaking{color:var(--gold);border-color:var(--gold);background:rgba(240,180,41,.08);}
 .fng-history{padding:14px 16px;}
@@ -675,6 +676,8 @@ section{scroll-margin-top:200px;}
 .airdrop-name{font-size:.78rem;font-weight:700;color:var(--text);}
 .airdrop-status{font-family:var(--mono);font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:8px;}
 .airdrop-status.farm{color:var(--green);background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);}
+.airdrop-status.new{color:#fff;background:var(--red);border:1px solid var(--red);}
+.airdrop-time{font-family:var(--mono);font-size:.55rem;color:var(--muted);margin-left:auto;}
 .airdrop-status.claim{color:var(--gold);background:rgba(240,180,41,.1);border:1px solid rgba(240,180,41,.25);}
 .airdrop-desc{font-size:.66rem;color:var(--muted2);line-height:1.5;margin-top:5px;}
 .airdrop-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px;}
@@ -1359,7 +1362,8 @@ img,canvas{max-width:100%;}
       </div>
       <div class="mood-line" id="moodLine">☕ Analyse de l'ambiance du marché…</div>
       <button class="voice-btn" id="voiceSummaryBtn">🔊 Écouter le résumé du marché</button>
-      <div class="voice-hint">≈ 2 min · voix la plus naturelle disponible dans votre navigateur</div>
+      <select id="voicePick" class="voice-pick" style="display:none" aria-label="Choisir la voix"></select>
+      <div class="voice-hint">≈ 2 min · choisissez une voix « Natural » ou « Premium » pour un rendu plus humain</div>
       <div class="fng-history">
         <div class="fng-history-title">Historique · 7 derniers jours</div>
         <canvas class="fng-history-chart" id="fngHistoryChart"></canvas>
@@ -1448,7 +1452,7 @@ img,canvas{max-width:100%;}
     <div class="card">
       <div class="card-hdr">
         <div class="card-title">🪂 Airdrops</div>
-        <span class="pill p-purple">À jour</span>
+        <span class="pill p-purple" id="adPill">Chargement…</span>
       </div>
       <div class="airdrop-list" id="airdropList"></div>
       <p class="airdrop-disclaimer">⚠️ Aucun airdrop n'est garanti · DYOR</p>
@@ -3627,26 +3631,73 @@ const AIRDROPS_POOL=[
   {name:'Scroll (Marks)',icon:'🟠',status:'farm',statusLabel:'Points',desc:"Saison 2 des Marks.",chain:'zkEVM',url:'https://scroll.io'}
 ];
 
+// Airdrops en direct : annonces Binance (HODLer Airdrops) + flux airdrops.io, rafraîchis toutes les 5 min.
+const AD_KEY='cafeCryptoAirdropsLive';
+let airdropsLive=[],airdropsStamp=0;
+try{const c=JSON.parse(localStorage.getItem(AD_KEY)||'null');if(c&&Array.isArray(c.items)){airdropsLive=c.items;airdropsStamp=c.t||0;}}catch(e){}
+
+function adMerged(){
+  const seen=new Set(),out=[];
+  airdropsLive.slice().sort((x,y)=>y.ts-x.ts).forEach(a=>{if(!seen.has(a.url)&&out.length<6){seen.add(a.url);out.push(a);}});
+  AIRDROPS_POOL.forEach(a=>{if(out.length<9)out.push(Object.assign({},a,{ts:0}));});
+  return out;
+}
 function renderAirdrops(){
   const list=$('airdropList');if(!list)return;
-  list.innerHTML=AIRDROPS_POOL.map(a=>`
+  list.innerHTML=adMerged().map(a=>{
+    const fresh=a.ts&&Date.now()-a.ts<48*36e5;
+    return `
     <div class="airdrop-item">
       <div class="airdrop-ico">${a.icon}</div>
       <div class="airdrop-info">
         <div class="airdrop-name-row">
           <span class="airdrop-name">${escapeHTML(a.name)}</span>
-          <span class="airdrop-status ${a.status}">${escapeHTML(a.statusLabel)}</span>
+          <span class="airdrop-status ${fresh?'new':a.status}">${fresh?'Nouveau':escapeHTML(a.statusLabel)}</span>
+          ${a.ts?`<span class="airdrop-time">il y a ${timeAgo(a.ts)}</span>`:''}
         </div>
         <div class="airdrop-desc">${escapeHTML(a.desc)}</div>
         <div class="airdrop-footer">
           <span class="airdrop-chain">${escapeHTML(a.chain)}</span>
-          <a href="${escapeHTML(safeUrl(a.url))}" target="_blank" rel="noopener noreferrer" class="airdrop-link">Site officiel →</a>
+          <a href="${escapeHTML(safeUrl(a.url))}" target="_blank" rel="noopener noreferrer" class="airdrop-link">${a.ts?'Voir l\'annonce →':'Site officiel →'}</a>
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`;}).join('');
+  const pill=$('adPill');
+  if(pill)pill.textContent=airdropsStamp?('En direct · '+new Date(airdropsStamp).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})):'Hors ligne';
+}
+async function adFetchJson(url){
+  const c=new AbortController();const t=setTimeout(()=>c.abort(),9000);
+  try{const r=await fetch(url,{signal:c.signal});if(!r.ok)throw new Error(r.status);return await r.json();}
+  finally{clearTimeout(t);}
+}
+async function fetchAirdrops(){
+  const found=[];
+  const tasks=[
+    adFetchJson('https://www.binance.com/bapi/composite/v1/public/cms/article/catalog/list/query?catalogId=48&pageNo=1&pageSize=30').then(j=>{
+      const arts=(j&&j.data&&j.data.articles)||(j&&j.data&&j.data.catalogs&&j.data.catalogs[0]&&j.data.catalogs[0].articles)||[];
+      arts.forEach(a=>{
+        const title=a.title||'';if(!/airdrop/i.test(title)||!a.code)return;
+        const m=[...title.matchAll(/\(([A-Z0-9]{2,10})\)/g)];const sym=m.length?m[m.length-1][1]:'';
+        found.push({name:sym?('Binance HODLer · '+sym):'Binance HODLer Airdrop',icon:'🟡',status:'claim',statusLabel:'Binance',desc:'Annonce officielle Binance : distribution aux détenteurs de BNB (Simple Earn / Launchpool).',chain:'CEX',url:'https://www.binance.com/en/support/announcement/'+a.code,ts:+a.releaseDate||0});
+      });
+    }),
+    adFetchJson('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent('https://airdrops.io/feed/')).then(j=>{
+      (j.items||[]).slice(0,12).forEach(it=>{
+        const title=(it.title||'').replace(/\s+/g,' ').trim();if(!title||!it.link)return;
+        found.push({name:title.replace(/\s*airdrop\s*$/i,'')||title,icon:'🪂',status:'farm',statusLabel:'Récent',desc:'Nouvel airdrop référencé sur airdrops.io : vérifiez les conditions sur la page.',chain:'airdrops.io',url:it.link,ts:new Date((it.pubDate||'').replace(' ','T')+(/Z|[+-]\d\d:?\d\d$/.test(it.pubDate||'')?'':'Z')).getTime()||0});
+      });
+    })
+  ];
+  await Promise.allSettled(tasks);
+  if(found.length){
+    airdropsLive=found.filter(a=>a.ts);airdropsStamp=Date.now();
+    try{localStorage.setItem(AD_KEY,JSON.stringify({t:airdropsStamp,items:airdropsLive}));}catch(e){}
+  }
+  renderAirdrops();
 }
 renderAirdrops();
+fetchAirdrops();
+setInterval(fetchAirdrops,300000);
 
 // ═══════════════════════════════════════════════
 // VOCAL
@@ -3669,17 +3720,34 @@ function fmtSpeechPrice(n){
 }
 
 // Choisit la voix française la plus naturelle disponible dans le navigateur
+function voiceScore(v){
+  if(!v.lang||!v.lang.toLowerCase().startsWith('fr'))return -1;
+  const n=v.name||'';
+  let sc=10;
+  if(/compact|espeak|eddy|flo\b|grandma|grandpa|reed|rocko|sandy|shelley|jacques|albert|fred|junior|bad news|bells|boing|bubbles|cellos|wobble|zarvox|organ|trinoids|whisper|superstar/i.test(n))sc-=30;
+  if(/natural|neural|online/i.test(n))sc+=25;          // Microsoft Edge « Online (Natural) »
+  if(/premium|enhanced|siri|améliorée/i.test(n))sc+=18;  // Apple
+  if(/google/i.test(n))sc+=8;
+  if(/microsoft/i.test(n))sc+=4;
+  if(/denise|vivienne|henri|remy|rémy|eloise|éloïse|audrey|amélie|amelie|thomas/i.test(n))sc+=3;
+  if(v.localService===false)sc+=2;
+  if(/fr[-_]fr/i.test(v.lang))sc+=3;
+  return sc;
+}
+function rankedFrenchVoices(voices){return voices.map(v=>({v,s:voiceScore(v)})).filter(x=>x.s>=0).sort((a,b)=>b.s-a.s).map(x=>x.v);}
 function pickBestFrenchVoice(voices){
-  const scored=voices.map(v=>{
-    let score=0;
-    if(v.lang&&v.lang.toLowerCase().startsWith('fr'))score+=10;else return{v,score:-1};
-    if(/google/i.test(v.name))score+=6;
-    if(/neural|natural|online|premium|enhanced|wavenet|microsoft/i.test(v.name))score+=5;
-    if(v.localService===false)score+=2;
-    if(/denise|henri|audrey|thomas|amelie|amélie/i.test(v.name))score+=3;
-    return{v,score};
-  }).filter(s=>s.score>=0).sort((a,b)=>b.score-a.score);
-  return scored.length?scored[0].v:null;
+  const ranked=rankedFrenchVoices(voices);
+  let saved='';try{saved=localStorage.getItem('cafeCryptoVoice')||'';}catch(e){}
+  return ranked.find(v=>v.name===saved)||ranked[0]||null;
+}
+// Remplit le sélecteur de voix (les voix « Natural / Premium » sont les plus humaines)
+function fillVoicePicker(){
+  const sel=$('voicePick');if(!sel||!('speechSynthesis' in window))return;
+  const ranked=rankedFrenchVoices(window.speechSynthesis.getVoices());
+  if(!ranked.length){sel.style.display='none';return;}
+  const cur=pickBestFrenchVoice(ranked);
+  sel.innerHTML=ranked.map(v=>`<option value="${escapeHTML(v.name)}"${cur&&cur.name===v.name?' selected':''}>${escapeHTML(v.name.replace(/^Microsoft\s+/,''))}</option>`).join('');
+  sel.style.display='';
 }
 
 // Construit le texte du résumé de marché (environ 2 minutes de lecture)
@@ -3731,17 +3799,28 @@ function buildMarketSummaryText(){
 
 let cdVoiceQueue=[],cdVoiceIdx=0,cdVoicePicked=null;
 
+// Découpe une phrase en groupes de souffle (virgules, points-virgules) pour un rythme humain
+function breathGroups(sentence){
+  const raw=sentence.split(/(?<=[,;:])\s+/);const out=[];
+  raw.forEach(c=>{if(out.length&&out[out.length-1].length<28)out[out.length-1]+=' '+c;else out.push(c);});
+  return out;
+}
 function speakNextSentence(btn){
   if(cdVoiceIdx>=cdVoiceQueue.length){
     if(btn){btn.classList.remove('speaking');btn.textContent='🔊 Écouter le résumé du marché';}
     return;
   }
-  const sentence=cdVoiceQueue[cdVoiceIdx++];
-  const utter=new SpeechSynthesisUtterance(sentence);
+  const chunk=cdVoiceQueue[cdVoiceIdx++];
+  const endsSentence=/[.!?…]$/.test(chunk.trim());
+  const utter=new SpeechSynthesisUtterance(chunk);
   utter.lang='fr-FR';
-  utter.rate=0.95;utter.pitch=1.02;utter.volume=1;
+  const j=()=>(Math.random()-.5)*.04;               // légère variation : évite le ton monotone
+  utter.rate=Math.min(1.08,Math.max(.9,(endsSentence?.98:1.03)+j()));
+  utter.pitch=Math.min(1.1,Math.max(.9,(endsSentence?.97:1.02)+j()));
+  utter.volume=1;
   if(cdVoicePicked)utter.voice=cdVoicePicked;
-  utter.onend=()=>{setTimeout(()=>speakNextSentence(btn),260);};
+  const gap=endsSentence?(/[!?]$/.test(chunk.trim())?420:340):140; // pause plus longue en fin de phrase
+  utter.onend=()=>{setTimeout(()=>speakNextSentence(btn),gap);};
   utter.onerror=()=>speakNextSentence(btn);
   window.speechSynthesis.speak(utter);
 }
@@ -3763,7 +3842,7 @@ function speakMarketSummary(){
   try{window.speechSynthesis.resume();}catch(e){}
   const voices=window.speechSynthesis.getVoices();
   cdVoicePicked=voices.length?pickBestFrenchVoice(voices):null;
-  cdVoiceQueue=buildMarketSummaryText();
+  cdVoiceQueue=buildMarketSummaryText().flatMap(breathGroups);
   cdVoiceIdx=0;
   if(btn){btn.classList.add('speaking');btn.textContent='⏸️ Arrêter la lecture';}
   speakNextSentence(btn); // appel synchrone, dans le même geste utilisateur
@@ -3771,7 +3850,7 @@ function speakMarketSummary(){
   if(!voices.length){
     window.speechSynthesis.onvoiceschanged=()=>{
       cdVoicePicked=pickBestFrenchVoice(window.speechSynthesis.getVoices());
-      window.speechSynthesis.onvoiceschanged=null;
+      fillVoicePicker();window.speechSynthesis.onvoiceschanged=null;
     };
   }
 }
@@ -4217,6 +4296,8 @@ function initStaticControls(){
   });
   const voiceBtn=$('voiceSummaryBtn');
   if(voiceBtn)voiceBtn.addEventListener('click',speakMarketSummary);
+  if('speechSynthesis' in window){fillVoicePicker();window.speechSynthesis.addEventListener&&window.speechSynthesis.addEventListener('voiceschanged',fillVoicePicker);
+    const vp=$('voicePick');if(vp)vp.addEventListener('change',()=>{try{localStorage.setItem('cafeCryptoVoice',vp.value);}catch(e){}cdVoicePicked=pickBestFrenchVoice(window.speechSynthesis.getVoices());if(window.speechSynthesis.speaking){window.speechSynthesis.cancel();cdVoiceQueue=[];cdVoiceIdx=0;const b=$('voiceSummaryBtn');if(b){b.classList.remove('speaking');b.textContent='🔊 Écouter le résumé du marché';}}});}
   document.querySelectorAll('.tab-group').forEach(group=>{
     group.addEventListener('click',handleTabClick);
   });
