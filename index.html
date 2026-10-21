@@ -261,7 +261,14 @@ section{scroll-margin-top:200px;}
 .portfolio-add-btn:hover{border-color:var(--red);background:rgba(220,38,38,.06);}
 
 /* SECTIONS CRYPTO */
-.tri-grid{display:grid;grid-template-columns:1fr;gap:16px;animation:fadeUp .4s ease both;}
+.tri-marquee{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);}
+.tri-grid{display:flex;width:max-content;animation:triScroll 80s linear infinite;}
+.tri-set{display:flex;gap:14px;padding-right:14px;align-items:flex-start;}
+.tri-set .crypto-section-card{flex:0 0 min(340px,84vw);width:min(340px,84vw);}
+@keyframes triScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tri-marquee.paused .tri-grid{animation-play-state:paused;}
+@media(hover:hover){.tri-marquee:hover .tri-grid{animation-play-state:paused;}}
+@media(prefers-reduced-motion:reduce){.tri-grid{animation:none;}.tri-marquee{overflow-x:auto;}.tri-set+.tri-set{display:none;}}
 .crypto-section-card{
   background:linear-gradient(180deg,var(--s1) 0%,var(--card-gradient-end) 100%);
   border:1px solid var(--border-red);border-radius:16px;overflow:hidden;
@@ -976,7 +983,6 @@ footer{border-top:1px solid var(--border-red);padding:16px 20px;display:flex;fle
   .col-left{min-width:0;display:flex;flex-direction:column;align-items:center;}
   .col-left>*{width:100%;max-width:860px;}
   .col-right{min-width:0;}
-  .tri-grid{grid-template-columns:repeat(3,1fr);gap:14px;}
   .page{padding:36px 32px 60px;max-width:1280px;}
   .logo-bar{height:120px;backdrop-filter:none;background:var(--bg);}
   .logo-text-main{font-size:2.6rem;}
@@ -1174,7 +1180,9 @@ img,canvas{max-width:100%;}
 <div class="col-left">
 
   <div class="crypto-sections">
-    <div class="tri-grid" id="triGrid">
+    <div class="tri-marquee" id="triMarquee">
+      <div class="tri-grid" id="triGrid">
+        <div class="tri-set" id="triSet">
       <div class="crypto-section-card">
         <div class="crypto-section-hdr">
           <div class="card-title">🔥 Tendances</div>
@@ -1207,6 +1215,9 @@ img,canvas{max-width:100%;}
         </div>
         <div id="loseList"><div class="loader"><div class="spinner"></div>Chargement…</div></div>
         <button class="see-more-btn" data-list="loseList">Voir plus ▼</button>
+      </div>
+        </div>
+        <div class="tri-set" id="triClone" aria-hidden="true"></div>
       </div>
     </div>
   </div>
@@ -1362,8 +1373,7 @@ img,canvas{max-width:100%;}
       </div>
       <div class="mood-line" id="moodLine">☕ Analyse de l'ambiance du marché…</div>
       <button class="voice-btn" id="voiceSummaryBtn">🔊 Écouter le résumé du marché</button>
-      <select id="voicePick" class="voice-pick" style="display:none" aria-label="Choisir la voix"></select>
-      <div class="voice-hint">≈ 2 min · choisissez une voix « Natural » ou « Premium » pour un rendu plus humain</div>
+      <div class="voice-hint">≈ 2 min · voix française naturelle</div>
       <div class="fng-history">
         <div class="fng-history-title">Historique · 7 derniers jours</div>
         <canvas class="fng-history-chart" id="fngHistoryChart"></canvas>
@@ -1390,21 +1400,7 @@ img,canvas{max-width:100%;}
     </div>
   </div>
 
-  <div class="portfolio-section">
-    <div class="portfolio-card">
-      <div class="portfolio-hdr">
-        <div class="portfolio-title">💼 Mon portefeuille</div>
-        <div class="portfolio-total">
-          <div class="portfolio-total-val" id="portfolioTotal">$0.00</div>
-          <div class="portfolio-total-pnl" id="portfolioPnl">—</div>
-        </div>
-      </div>
-      <div class="portfolio-list" id="portfolioList">
-        <div class="portfolio-empty">Ajoutez des cryptos depuis vos favoris ⭐</div>
-      </div>
-      <button class="portfolio-add-btn" id="portfolioAddBtn">+ Ajouter depuis les favoris</button>
-    </div>
-  </div>
+
 
   <div class="crypto-tweets-section">
     <div class="card">
@@ -1864,7 +1860,7 @@ async function loadSparklinesForVisible(coins){
   // Le fetch principal (CoinGecko) fournit déjà les sparklines 7j pour la plupart des cryptos.
   // On ne complète ici que les cas rares où elles manquent (ex: source de secours CoinPaprika).
   const ids=coins.map(c=>c.id).filter(id=>!sparklineCache[id]||sparklineCache[id].length<10);
-  if(!ids.length){renderAllSparklines();renderCryptoRowSparklines($('trendList'));renderCryptoRowSparklines($('winList'));renderCryptoRowSparklines($('loseList'));return;}
+  if(!ids.length){renderAllSparklines();renderCryptoRowSparklines($('trendList'));renderCryptoRowSparklines($('winList'));renderCryptoRowSparklines($('loseList'));syncTriClone();return;}
   const limited=ids.slice(0,8);
   await Promise.all(limited.map(async id=>{
     try{
@@ -1878,7 +1874,7 @@ async function loadSparklinesForVisible(coins){
     }catch(e){}
   }));
   try{localStorage.setItem('cafeCryptoSparklines',JSON.stringify(sparklineCache));}catch(e){}
-  renderAllSparklines();renderCryptoRowSparklines($('trendList'));renderCryptoRowSparklines($('winList'));renderCryptoRowSparklines($('loseList'));
+  renderAllSparklines();renderCryptoRowSparklines($('trendList'));renderCryptoRowSparklines($('winList'));renderCryptoRowSparklines($('loseList'));syncTriClone();
 }
 
 function renderAllSparklines(){
@@ -1964,6 +1960,7 @@ function renderPortfolio(){
 }
 
 function updatePortfolioValuesOnly(){
+  if(!$('portfolioTotal'))return;
   document.querySelectorAll('.portfolio-row').forEach(row=>{
     const input=row.querySelector('.portfolio-qty-input');
     if(!input)return;
@@ -2008,7 +2005,7 @@ document.addEventListener('click',function(e){
   if(rm){const id=rm.dataset.removeId;if(portfolio[id]){delete portfolio[id];savePortfolio();renderPortfolio();showNotification('Retiré','','🗑️',2000);}}
 });
 
-$('portfolioAddBtn').addEventListener('click',()=>{
+const _pab=$('portfolioAddBtn');if(_pab)_pab.addEventListener('click',()=>{
   if(!favorites.size){showNotification('Aucun favori','Ajoutez d\'abord des cryptos ⭐','⚠️',4000);return;}
   let added=0;
   favorites.forEach(id=>{
@@ -2264,6 +2261,16 @@ function buildTriSections(coins){
   renderLoseList(loseData.slice(0,5));
 }
 
+// Copie du jeu de cartes pour une boucle de défilement sans coupure
+let _triSync=0;
+function syncTriClone(){
+  cancelAnimationFrame(_triSync);
+  _triSync=requestAnimationFrame(()=>{
+    const set=$('triSet'),cl=$('triClone');if(!set||!cl)return;
+    cl.innerHTML=set.innerHTML.replace(/\sid="[^"]*"/g,'');
+    renderCryptoRowSparklines(cl);
+  });
+}
 function renderCryptoRowSparklines(container){
   if(!container)return;
   container.querySelectorAll('.cr-spark-inner canvas').forEach(cv=>{
@@ -2271,9 +2278,9 @@ function renderCryptoRowSparklines(container){
     if(data&&data.length>1)drawSparkline(cv,data);
   });
 }
-function renderTrendList(data){$('trendList').innerHTML=data.length?data.map((c,i)=>buildCryptoRow(c,i+1)).join(''):'<div class="loader-error">Aucune donnée</div>';renderCryptoRowSparklines($('trendList'));}
-function renderWinList(data){$('winList').innerHTML=data.length?data.map((c,i)=>buildCryptoRow(c,i+1)).join(''):'<div class="loader-error">Aucune donnée</div>';renderCryptoRowSparklines($('winList'));}
-function renderLoseList(data){$('loseList').innerHTML=data.length?data.map((c,i)=>buildCryptoRow(c,i+1)).join(''):'<div class="loader-error">Aucune donnée</div>';renderCryptoRowSparklines($('loseList'));}
+function renderTrendList(data){$('trendList').innerHTML=data.length?data.map((c,i)=>buildCryptoRow(c,i+1)).join(''):'<div class="loader-error">Aucune donnée</div>';renderCryptoRowSparklines($('trendList'));syncTriClone();}
+function renderWinList(data){$('winList').innerHTML=data.length?data.map((c,i)=>buildCryptoRow(c,i+1)).join(''):'<div class="loader-error">Aucune donnée</div>';renderCryptoRowSparklines($('winList'));syncTriClone();}
+function renderLoseList(data){$('loseList').innerHTML=data.length?data.map((c,i)=>buildCryptoRow(c,i+1)).join(''):'<div class="loader-error">Aucune donnée</div>';renderCryptoRowSparklines($('loseList'));syncTriClone();}
 
 let trendExpanded=false,winExpanded=false,loseExpanded=false;
 function showMore(sectionId){
@@ -3663,12 +3670,32 @@ function renderAirdrops(){
       </div>
     </div>`;}).join('');
   const pill=$('adPill');
-  if(pill)pill.textContent=airdropsStamp?('En direct · '+new Date(airdropsStamp).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})):'Hors ligne';
+  if(pill)pill.textContent=airdropsStamp?('En direct · '+new Date(airdropsStamp).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})):'Programmes actifs';
 }
 async function adFetchJson(url){
   const c=new AbortController();const t=setTimeout(()=>c.abort(),9000);
   try{const r=await fetch(url,{signal:c.signal});if(!r.ok)throw new Error(r.status);return await r.json();}
   finally{clearTimeout(t);}
+}
+// Lecture RSS robuste : rss2json, puis proxys CORS publics, avec analyse XML locale
+async function adFetchText(url){const c=new AbortController();const t=setTimeout(()=>c.abort(),9000);try{const r=await fetch(url,{signal:c.signal});if(!r.ok)throw new Error(r.status);return await r.text();}finally{clearTimeout(t);}}
+function parseRssXml(xml){
+  const d=new DOMParser().parseFromString(xml,'text/xml');
+  return [...d.querySelectorAll('item')].map(it=>{
+    const g=t=>{const e=it.getElementsByTagName(t)[0];return e?e.textContent.trim():'';};
+    const enc=it.getElementsByTagName('enclosure')[0],mc=it.getElementsByTagName('media:content')[0]||it.getElementsByTagName('media:thumbnail')[0];
+    const desc=g('description')||g('content:encoded');
+    const im=(enc&&enc.getAttribute('url'))||(mc&&mc.getAttribute('url'))||((desc.match(/<img[^>]+src=["']([^"']+)/i)||[])[1])||'';
+    return{title:g('title'),link:g('link'),pubDate:g('pubDate'),description:desc.replace(/<[^>]*>/g,'').trim(),thumbnail:im};
+  }).filter(x=>x.title&&x.link);
+}
+async function fetchRssItems(url){
+  const enc=encodeURIComponent(url);
+  try{const j=await adFetchJson('https://api.rss2json.com/v1/api.json?rss_url='+enc);if(j&&j.items&&j.items.length)return j.items;}catch(e){}
+  for(const prox of ['https://api.allorigins.win/raw?url=','https://corsproxy.io/?']){
+    try{const it=parseRssXml(await adFetchText(prox+enc));if(it.length)return it;}catch(e){}
+  }
+  return [];
 }
 async function fetchAirdrops(){
   const found=[];
@@ -3681,16 +3708,22 @@ async function fetchAirdrops(){
         found.push({name:sym?('Binance HODLer · '+sym):'Binance HODLer Airdrop',icon:'🟡',status:'claim',statusLabel:'Binance',desc:'Annonce officielle Binance : distribution aux détenteurs de BNB (Simple Earn / Launchpool).',chain:'CEX',url:'https://www.binance.com/en/support/announcement/'+a.code,ts:+a.releaseDate||0});
       });
     }),
-    adFetchJson('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent('https://airdrops.io/feed/')).then(j=>{
-      (j.items||[]).slice(0,12).forEach(it=>{
+    fetchRssItems('https://airdrops.io/feed/').then(items=>{
+      items.slice(0,12).forEach(it=>{
         const title=(it.title||'').replace(/\s+/g,' ').trim();if(!title||!it.link)return;
-        found.push({name:title.replace(/\s*airdrop\s*$/i,'')||title,icon:'🪂',status:'farm',statusLabel:'Récent',desc:'Nouvel airdrop référencé sur airdrops.io : vérifiez les conditions sur la page.',chain:'airdrops.io',url:it.link,ts:new Date((it.pubDate||'').replace(' ','T')+(/Z|[+-]\d\d:?\d\d$/.test(it.pubDate||'')?'':'Z')).getTime()||0});
+        const ts=new Date(it.pubDate).getTime()||new Date(String(it.pubDate||'').replace(' ','T')+'Z').getTime()||0;
+        found.push({name:title.replace(/\s*airdrop\s*$/i,'')||title,icon:'🪂',status:'farm',statusLabel:'Récent',desc:'Nouvel airdrop référencé sur airdrops.io : vérifiez les conditions sur la page.',chain:'airdrops.io',url:it.link,ts});
+      });
+    }),
+    adFetchJson('https://min-api.cryptocompare.com/data/v2/news/?lang=EN').then(j=>{
+      (j.Data||[]).filter(n=>/airdrop/i.test((n.title||'')+' '+(n.categories||''))).slice(0,6).forEach(n=>{
+        found.push({name:(n.title||'').slice(0,70),icon:'📰',status:'farm',statusLabel:'Actu',desc:'Actualité airdrop · '+((n.source_info&&n.source_info.name)||'CryptoCompare'),chain:'News',url:n.url,ts:(n.published_on||0)*1000});
       });
     })
   ];
   await Promise.allSettled(tasks);
   if(found.length){
-    airdropsLive=found.filter(a=>a.ts);airdropsStamp=Date.now();
+    airdropsLive=found.filter(a=>a.ts&&a.url);airdropsStamp=Date.now();
     try{localStorage.setItem(AD_KEY,JSON.stringify({t:airdropsStamp,items:airdropsLive}));}catch(e){}
   }
   renderAirdrops();
@@ -3737,19 +3770,8 @@ function voiceScore(v){
 function rankedFrenchVoices(voices){return voices.map(v=>({v,s:voiceScore(v)})).filter(x=>x.s>=0).sort((a,b)=>b.s-a.s).map(x=>x.v);}
 function pickBestFrenchVoice(voices){
   const ranked=rankedFrenchVoices(voices);
-  let saved='';try{saved=localStorage.getItem('cafeCryptoVoice')||'';}catch(e){}
-  return ranked.find(v=>v.name===saved)||ranked[0]||null;
+  return ranked[0]||null;
 }
-// Remplit le sélecteur de voix (les voix « Natural / Premium » sont les plus humaines)
-function fillVoicePicker(){
-  const sel=$('voicePick');if(!sel||!('speechSynthesis' in window))return;
-  const ranked=rankedFrenchVoices(window.speechSynthesis.getVoices());
-  if(!ranked.length){sel.style.display='none';return;}
-  const cur=pickBestFrenchVoice(ranked);
-  sel.innerHTML=ranked.map(v=>`<option value="${escapeHTML(v.name)}"${cur&&cur.name===v.name?' selected':''}>${escapeHTML(v.name.replace(/^Microsoft\s+/,''))}</option>`).join('');
-  sel.style.display='';
-}
-
 // Construit le texte du résumé de marché (environ 2 minutes de lecture)
 function buildMarketSummaryText(){
   const parts=[];
@@ -3850,7 +3872,7 @@ function speakMarketSummary(){
   if(!voices.length){
     window.speechSynthesis.onvoiceschanged=()=>{
       cdVoicePicked=pickBestFrenchVoice(window.speechSynthesis.getVoices());
-      fillVoicePicker();window.speechSynthesis.onvoiceschanged=null;
+      window.speechSynthesis.onvoiceschanged=null;
     };
   }
 }
@@ -3903,54 +3925,29 @@ function openArticleModal(idx){
 function closeArticleModal(){$('articlePage').classList.remove('active');document.body.style.overflow='';}
 
 async function fetchNews(){
+  let items=[];
   try{
-    const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),10000);
-    const response=await fetch('https://min-api.cryptocompare.com/data/v2/news/?lang=FR',{signal:controller.signal});
-    clearTimeout(timeout);
-    if(!response.ok)throw new Error('CryptoCompare');
-    const data=await response.json();
-    if(data.Data&&data.Data.length>0){
-      const picked=data.Data.slice(0,5).map(item=>({
-        title:item.title||'',description:(item.body||'').substring(0,320),
-        image:safeUrl(item.imageurl),link:safeUrl(item.url),
-        pubDate:new Date(item.published_on*1000).toISOString(),
-        _src:item.source_info?.name||'CryptoCompare'
-      }));
-      carouselItems=await translateItems(picked);
-      buildCarousel();
-      return;
-    }
-    throw new Error('No data');
-  }catch(e){
-    try{
-      const results=await Promise.allSettled([
-        fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.coindesk.com/arc/outboundfeeds/rss/').then(r=>r.json()).then(d=>({items:d.items||[],src:'CoinDesk'})),
-        fetch('https://api.rss2json.com/v1/api.json?rss_url=https://cointelegraph.com/rss').then(r=>r.json()).then(d=>({items:d.items||[],src:'Cointelegraph'}))
-      ]);
-      let allItems=[];
-      results.forEach(r=>{
-        if(r.status==='fulfilled'&&r.value.items){
-          r.value.items.forEach(item=>{
-            allItems.push({
-              title:item.title||'',description:(item.description||'').replace(/<[^>]*>/g,''),
-              image:safeUrl(item.thumbnail),link:safeUrl(item.link),
-              pubDate:item.pubDate,_src:r.value.src
-            });
-          });
-        }
-      });
-      if(allItems.length>0){
-        allItems.sort((a,b)=>new Date(b.pubDate||0)-new Date(a.pubDate||0));
-        carouselItems=await translateItems(allItems.slice(0,5));
-        buildCarousel();return;
-      }
-      throw new Error('No RSS');
-    }catch(rssError){
-      const track=$('carouselTrack');
-      if(track)track.innerHTML='<div class="carousel-slide"><div class="loader-error">📡 Actualités indisponibles</div></div>';
-    }
+    const j=await adFetchJson('https://min-api.cryptocompare.com/data/v2/news/?lang=EN');
+    items=(j.Data||[]).slice(0,8).map(n=>({title:n.title||'',description:(n.body||'').substring(0,320),image:n.imageurl||'',link:n.url||'',pubDate:new Date(n.published_on*1000).toISOString(),_src:(n.source_info&&n.source_info.name)||'CryptoCompare'}));
+  }catch(e){}
+  if(!items.length){
+    const res=await Promise.allSettled([
+      fetchRssItems('https://www.coindesk.com/arc/outboundfeeds/rss/').then(r=>r.map(x=>({...x,_src:'CoinDesk'}))),
+      fetchRssItems('https://cointelegraph.com/rss').then(r=>r.map(x=>({...x,_src:'Cointelegraph'})))
+    ]);
+    res.forEach(r=>{if(r.status==='fulfilled')r.value.forEach(x=>items.push({title:x.title||'',description:(x.description||'').replace(/<[^>]*>/g,'').substring(0,320),image:x.thumbnail||(x.enclosure&&x.enclosure.link)||'',link:x.link||'',pubDate:x.pubDate,_src:x._src}));});
+    items.sort((a,b)=>new Date(b.pubDate||0)-new Date(a.pubDate||0));
+    items=items.slice(0,8);
   }
+  if(!items.length){
+    if(!carouselItems.length){const track=$('carouselTrack');if(track)track.innerHTML='<div class="carousel-slide"><div class="loader-error">📡 Actualités indisponibles pour le moment</div></div>';}
+    return;
+  }
+  carouselItems=items;buildCarousel();            // affichage immédiat, en anglais
+  try{                                              // puis traduction en arrière-plan
+    const tr=await Promise.race([translateItems(items.slice(0,5)),new Promise((_,rej)=>setTimeout(()=>rej(new Error('t')),15000))]);
+    carouselItems=[...tr,...items.slice(5)];buildCarousel();
+  }catch(e){}
 }
 
 function buildCarousel(){
@@ -4296,8 +4293,6 @@ function initStaticControls(){
   });
   const voiceBtn=$('voiceSummaryBtn');
   if(voiceBtn)voiceBtn.addEventListener('click',speakMarketSummary);
-  if('speechSynthesis' in window){fillVoicePicker();window.speechSynthesis.addEventListener&&window.speechSynthesis.addEventListener('voiceschanged',fillVoicePicker);
-    const vp=$('voicePick');if(vp)vp.addEventListener('change',()=>{try{localStorage.setItem('cafeCryptoVoice',vp.value);}catch(e){}cdVoicePicked=pickBestFrenchVoice(window.speechSynthesis.getVoices());if(window.speechSynthesis.speaking){window.speechSynthesis.cancel();cdVoiceQueue=[];cdVoiceIdx=0;const b=$('voiceSummaryBtn');if(b){b.classList.remove('speaking');b.textContent='🔊 Écouter le résumé du marché';}}});}
   document.querySelectorAll('.tab-group').forEach(group=>{
     group.addEventListener('click',handleTabClick);
   });
@@ -4686,6 +4681,22 @@ rotateBrewSub();
 attachRowClickHandler('trendList');
 attachRowClickHandler('winList');
 attachRowClickHandler('loseList');
+attachRowClickHandler('triClone');
+(function(){
+  const mq=$('triMarquee');if(!mq)return;
+  let t=0;
+  mq.addEventListener('touchstart',()=>{clearTimeout(t);mq.classList.add('paused');},{passive:true});
+  const rel=()=>{clearTimeout(t);t=setTimeout(()=>mq.classList.remove('paused'),4000);};
+  mq.addEventListener('touchend',rel,{passive:true});mq.addEventListener('touchcancel',rel,{passive:true});
+  // La copie ne doit pas avoir son propre état : ses clics sont relayés vers l'original
+  const cl=$('triClone');
+  if(cl)cl.addEventListener('click',e=>{
+    const tab=e.target.closest('.tab[data-period]');
+    if(tab){const o=document.querySelector('#triSet .tab[data-list="'+tab.dataset.list+'"][data-period="'+tab.dataset.period+'"]');if(o)o.click();e.stopPropagation();return;}
+    const more=e.target.closest('.see-more-btn');
+    if(more){showMore(more.dataset.list);e.stopPropagation();}
+  });
+})();
 attachRowClickHandler('top100List');
 attachRowClickHandler('arbList');
 attachRowClickHandler('newListingsList');
