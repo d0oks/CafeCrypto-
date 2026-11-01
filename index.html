@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>SunuCrypto — Marchés & Actualités Pro</title>
 <meta name="description" content="SunuCrypto : prix crypto temps réel, graphique BTC, tendances, gagnants, perdants du jour."/>
 <meta name="author" content="SunuCrypto"/>
@@ -1116,6 +1116,8 @@ img,canvas{max-width:100%;}
 .dd-prog{height:3px;background:var(--s3);border-radius:2px;margin-bottom:10px}
 .dd-prog i{display:block;height:100%;background:var(--gold);border-radius:2px;transition:width .3s}
 .dd-score{font-size:1.6rem;font-weight:700;color:var(--gold);font-family:var(--mono)}
+/* iOS : évite le zoom automatique au focus des champs (zoom manuel autorisé) */
+@supports(-webkit-touch-callout:none){input,select,textarea{font-size:16px!important;}}
 </style>
 </head>
 <body>
@@ -1712,6 +1714,20 @@ img,canvas{max-width:100%;}
 </div>
 
 <script>
+// Relais optionnel (voir worker.js). Laisser vide = appels directs comme avant.
+const RELAY_URL='';
+(function(){
+  if(!RELAY_URL)return;
+  const CG='https://api.coingecko.com/api/v3',f=window.fetch.bind(window);
+  window.fetch=async function(u,o){
+    if(typeof u==='string'&&u.indexOf(CG)===0){
+      try{const r=await f(RELAY_URL+'/cg'+u.slice(CG.length),o);if(r.ok)return r;}
+      catch(e){if(o&&o.signal&&o.signal.aborted)throw e;}   // relais en panne : repli sur l'appel direct
+    }
+    return f(u,o);
+  };
+})();
+
 // ═══════════════════════════════════════════════
 // FALLBACK
 // ═══════════════════════════════════════════════
@@ -3691,6 +3707,7 @@ function parseRssXml(xml){
 }
 async function fetchRssItems(url){
   const enc=encodeURIComponent(url);
+  if(RELAY_URL){try{const it=parseRssXml(await adFetchText(RELAY_URL+'/rss?url='+enc));if(it.length)return it;}catch(e){}}
   try{const j=await adFetchJson('https://api.rss2json.com/v1/api.json?rss_url='+enc);if(j&&j.items&&j.items.length)return j.items;}catch(e){}
   for(const prox of ['https://api.allorigins.win/raw?url=','https://corsproxy.io/?']){
     try{const it=parseRssXml(await adFetchText(prox+enc));if(it.length)return it;}catch(e){}
