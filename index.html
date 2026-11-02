@@ -1040,6 +1040,7 @@ footer{border-top:1px solid var(--border-red);padding:16px 20px;display:flex;fle
   .explorer-section{order:10;}
   .airdrops-section{order:11;}
   .events-section{order:12;}
+  .unlocks-section{order:12;}
   .partners-section{order:13;}
   .community-section{order:14;}
   .chart-section{order:15;}
@@ -1127,7 +1128,12 @@ img,canvas{max-width:100%;}
 .new-badge{font-family:var(--mono);font-size:.5rem;font-weight:800;letter-spacing:.5px;color:#fff;background:linear-gradient(135deg,var(--red),#f87171);padding:1px 5px;border-radius:4px;margin-left:5px;vertical-align:middle;}
 .cr-chg.chg-flat{color:var(--muted2);background:var(--s2);}
 .heatmap-section{width:100%;margin-top:0;animation:fadeUp .5s ease both;}
-.hm-hdr{justify-content:flex-end;}
+.hm-hdr{justify-content:flex-end;gap:8px;align-items:center;}
+.hm-fullbtn{width:30px;height:30px;border-radius:8px;border:1px solid var(--b);background:var(--s2);color:var(--muted2);display:grid;place-items:center;cursor:pointer;transition:all .2s;padding:0;}
+.hm-fullbtn:hover{color:var(--text);border-color:var(--b2);}
+/* Plein écran : la carte est déplacée dans <body> (évite tout parent transformé) */
+.hm-full-on{position:fixed;inset:0;z-index:9500;width:100%;height:100%;max-width:none;margin:0;border-radius:0;display:flex;flex-direction:column;box-sizing:border-box;background:var(--bg);padding:max(10px,env(safe-area-inset-top)) 12px max(10px,env(safe-area-inset-bottom));overflow:hidden;}
+.hm-full-on .hm-wrap{flex:1;min-height:0;margin:8px 0 0;}
 @media(min-width:768px){.heatmap-section+.crypto-sections{margin-top:20px;}}
 .hm-wrap{position:relative;margin:12px;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 25% 15%,rgba(255,255,255,.05),transparent 55%),var(--s2);border:1px solid rgba(255,255,255,.06);box-shadow:inset 0 0 40px rgba(0,0,0,.4);}
 .hm-bub{position:absolute;display:block;color:#fff;text-decoration:none;cursor:pointer;animation:hmFloat var(--dur,7s) ease-in-out var(--dl,0s) infinite;will-change:transform;-webkit-tap-highlight-color:transparent;}
@@ -1156,6 +1162,14 @@ body.light-theme .hm-wrap{--hm-g:#2e9e66;--hm-r:#c24747;}
 .cd-share-pill{display:inline-flex;align-items:center;gap:6px;padding:3px 12px;border-radius:999px;border:1px solid var(--red);background:rgba(220,38,38,.1);color:var(--red);font-family:var(--mono);font-size:.62rem;font-weight:800;letter-spacing:.3px;cursor:pointer;transition:all .2s;}
 .cd-share-pill:hover{background:var(--red);color:#fff;}
 @media(min-width:768px){.tri-grid>.new-card{display:none;}}   /* carte « Nouveaux » : mobile uniquement */
+.unlocks-section{margin-top:20px;}
+.ul-right{text-align:right;flex-shrink:0;font-family:var(--mono);}
+.ul-val{font-size:.74rem;font-weight:800;color:var(--text);}
+.ul-sub{font-size:.58rem;color:var(--muted2);margin-top:2px;}
+.ul-days{display:block;font-size:.5rem;color:var(--muted);margin-top:3px;font-weight:600;}
+.ul-logo{width:16px;height:16px;border-radius:50%;vertical-align:-3px;margin-right:6px;object-fit:cover;}
+.ul-name{color:var(--muted2);font-weight:400;margin-left:6px;font-size:.68rem;}
+.ul-note{padding:10px 16px 14px;font-family:var(--mono);font-size:.55rem;color:var(--muted);line-height:1.5;}
 </style>
 </head>
 <body>
@@ -1224,8 +1238,9 @@ body.light-theme .hm-wrap{--hm-g:#2e9e66;--hm-r:#c24747;}
 <div class="col-left">
 
   <div class="heatmap-section">
-    <div class="crypto-section-card">
+    <div class="crypto-section-card" id="hmCard">
       <div class="crypto-section-hdr hm-hdr">
+        <button class="hm-fullbtn" id="hmFull" type="button" aria-label="Plein écran" title="Plein écran"><svg id="hmFullIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
         <div class="tab-group" id="hmTabs">
           <button class="tab active" data-hm="24h">24h</button>
           <button class="tab" data-hm="7d">7j</button>
@@ -1526,6 +1541,20 @@ body.light-theme .hm-wrap{--hm-g:#2e9e66;--hm-r:#c24747;}
     </div>
   </div>
 
+  <div class="unlocks-section" id="unlocksSection" style="display:none">
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">🔓 Déblocages de tokens</div>
+        <div class="tab-group" id="ulTabs">
+          <button class="tab" data-ul="7">7 j</button>
+          <button class="tab active" data-ul="30">30 j</button>
+        </div>
+      </div>
+      <div class="events-list" id="unlocksList"></div>
+      <div class="ul-note" id="ulNote"></div>
+    </div>
+  </div>
+
   <div class="partners-section">
     <div class="card">
       <div class="card-hdr">
@@ -1543,7 +1572,7 @@ body.light-theme .hm-wrap{--hm-g:#2e9e66;--hm-r:#c24747;}
       <div class="card-hdr"><div class="card-title">👥 Communauté</div></div>
       <div class="soc-row">
         <a href="https://twitter.com/SunuCrypto" target="_blank" rel="noopener noreferrer" class="soc-btn tw">𝕏 Twitter</a>
-        <a href="https://t.me/SunuCrypto" target="_blank" rel="noopener noreferrer" class="soc-btn tg">✈️ Telegram</a>
+        <a href="https://t.me/+2TZV7yzeJH4yYWQ0" target="_blank" rel="noopener noreferrer" class="soc-btn tg">✈️ Telegram</a>
       </div>
     </div>
   </div>
@@ -2344,6 +2373,7 @@ function buildTriSections(coins){
   renderWinList(winData.slice(0,winExpanded?10:5));
   renderLoseList(loseData.slice(0,loseExpanded?10:5));
   try{renderHeatmap();}catch(e){console.warn('Carte thermique:',e.message);}
+  try{renderUnlocks();}catch(e){}
 }
 
 function renderCryptoRowSparklines(container){
@@ -3595,15 +3625,16 @@ const hmRand=n=>{const x=Math.sin(n*12.9898+78.233)*43758.5453;return x-Math.flo
 function renderHeatmap(){
   const wrap=$('hmWrap');if(!wrap||!allCoins||!allCoins.length)return;
   const W=wrap.clientWidth;if(W<50)return;
-  const mobile=W<500,H=Math.round(mobile?W*1.1:W*0.52);
-  wrap.style.height=H+'px';
+  const full=hmFullOn,mobile=W<500;
+  const H=full?Math.max(200,wrap.clientHeight):Math.round(mobile?W*1.1:W*0.52);
+  if(!full)wrap.style.height=H+'px';
   const key=hmPeriod==='7d'?'price_change_percentage_7d_in_currency':'price_change_percentage_24h';
-  const coins=allCoins.filter(c=>c.market_cap>0&&c[key]!=null&&!HM_STABLES.has(symOf(c))).sort((a,b)=>b.market_cap-a.market_cap).slice(0,mobile?28:40);
+  const coins=allCoins.filter(c=>c.market_cap>0&&c[key]!=null&&!HM_STABLES.has(symOf(c))).sort((a,b)=>b.market_cap-a.market_cap).slice(0,full?(W>700?70:46):(mobile?28:40));
   if(!coins.length){wrap.innerHTML='<div class="loader-error">Aucune donnée</div>';hmState=null;return;}
   const idsKey=coins.map(c=>c.id).join('|');
   const els={};wrap.querySelectorAll('.hm-bub').forEach(e=>{els[e.dataset.coinId]=e;});
   // Mêmes cryptos, même largeur : on garde les bulles (et leur flottement), on ne change que couleurs et pourcentages
-  if(hmState&&hmState.W===W&&hmState.key===idsKey&&Object.keys(els).length===coins.length){
+  if(hmState&&hmState.W===W&&hmState.H===H&&hmState.key===idsKey&&Object.keys(els).length===coins.length){
     coins.forEach(c=>{
       const el=els[c.id];if(!el)return;
       const p=c[key]||0,inn=el.firstElementChild,v=hmVars(p);
@@ -3614,7 +3645,7 @@ function renderHeatmap(){
     if(hmState.flash){wrap.classList.add('hm-flash');setTimeout(()=>wrap.classList.remove('hm-flash'),700);hmState.flash=false;}
     return;
   }
-  const pts=packBubbles(coins.map(c=>Math.pow(c.market_cap,0.5)),W,H,mobile?15:17);
+  const pts=packBubbles(coins.map(c=>Math.pow(c.market_cap,0.5)),W,H,full?(W>700?20:16):(mobile?15:17));
   if(hmAnimNext){wrap.classList.add('hm-anim');setTimeout(()=>wrap.classList.remove('hm-anim'),1800);hmAnimNext=false;}
   wrap.innerHTML=coins.map((c,n)=>{
     const p=c[key]||0,sym=symOf(c),pt=pts[n],r=pt.r,d=r*2;
@@ -3628,7 +3659,34 @@ function renderHeatmap(){
       :`<b class="hm-b-sym" style="font-size:${sfs.toFixed(1)}px">${escapeHTML(sym)}</b>`;   // repli : pas de logo disponible
     return`<a href="javascript:void(0)" class="hm-bub" data-coin-id="${escapeHTML(c.id)}" title="${escapeHTML(c.name||sym)} ${fmtPct(p)}" style="--i:${n};${hmVarStr(hmVars(p))};--dx:${dx}px;--dy:${dy}px;--dur:${dur}s;--dl:${dl}s;left:${(pt.x-r).toFixed(1)}px;top:${(pt.y-r).toFixed(1)}px;width:${d.toFixed(1)}px;height:${d.toFixed(1)}px"><span class="hm-in">${logo}${showPct?`<i class="hm-b-pct" style="font-style:normal;font-size:${pfs.toFixed(1)}px">${fmtPct(p)}</i>`:''}</span></a>`;
   }).join('');
-  hmState={W,key:idsKey,flash:false};
+  hmState={W,H,key:idsKey,flash:false};
+}
+
+// Plein écran de la carte thermique (pseudo plein écran partout + vrai plein écran si le navigateur le permet)
+let hmFullOn=false,hmFullHolder=null;
+const HM_ICON_ON='M8 3v3a2 2 0 0 1-2 2H3M16 3v3a2 2 0 0 0 2 2h3M8 21v-3a2 2 0 0 0-2-2H3M16 21v-3a2 2 0 0 1 2-2h3';
+const HM_ICON_OFF='M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3';
+function setHmFull(on){
+  const card=$('hmCard'),wrap=$('hmWrap');if(!card||!wrap||on===hmFullOn)return;
+  hmFullOn=on;hmAnimNext=true;
+  if(on){
+    hmFullHolder=document.createElement('div');hmFullHolder.id='hmHolder';
+    card.parentNode.replaceChild(hmFullHolder,card);
+    document.body.appendChild(card);
+    card.classList.add('hm-full-on');wrap.style.height='';
+    document.documentElement.style.overflow='hidden';
+    try{const r=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();if(r&&r.catch)r.catch(()=>{});}catch(e){}
+  }else{
+    card.classList.remove('hm-full-on');
+    if(hmFullHolder&&hmFullHolder.parentNode){hmFullHolder.parentNode.replaceChild(card,hmFullHolder);}
+    hmFullHolder=null;
+    document.documentElement.style.overflow='';
+    try{if(document.fullscreenElement&&document.exitFullscreen){const r=document.exitFullscreen();if(r&&r.catch)r.catch(()=>{});}}catch(e){}
+  }
+  const ic=$('hmFullIcon');if(ic)ic.firstElementChild.setAttribute('d',on?HM_ICON_ON:HM_ICON_OFF);
+  const b=$('hmFull');if(b){b.setAttribute('aria-label',on?'Quitter le plein écran':'Plein écran');b.title=b.getAttribute('aria-label');}
+  hmState=null;
+  requestAnimationFrame(()=>requestAnimationFrame(renderHeatmap));
 }
 function initHeatmap(){
   const tabs=$('hmTabs');
@@ -3638,8 +3696,79 @@ function initHeatmap(){
     tabs.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===b));
     renderHeatmap();
   });
+  const fb=$('hmFull');if(fb)fb.addEventListener('click',()=>setHmFull(!hmFullOn));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&hmFullOn)setHmFull(false);});
+  document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&hmFullOn)setHmFull(false);});
   let rt=null;
   window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(renderHeatmap,150);});
+}
+
+
+// ═══════════════════════════════════════════════
+// DÉBLOCAGES DE TOKENS — données : unlocks.json (estimations, à mettre à jour)
+// ═══════════════════════════════════════════════
+let unlocksData=null,unlocksRange=30;
+const UL_MONTHS=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+function ulUsd(n){return n>=1e9?'$'+(n/1e9).toFixed(2)+'B':n>=1e7?'$'+Math.round(n/1e6)+'M':n>=1e6?'$'+(n/1e6).toFixed(1)+'M':'$'+Math.round(n/1e3)+'K';}
+function ulTok(n){return(n>=1e9?(n/1e9).toFixed(2)+' Md':n>=1e6?(n/1e6).toFixed(n>=1e8?0:1)+' M':n>=1e3?Math.round(n/1e3)+' k':String(n)).replace('.',',');}
+function ulDays(dateStr){
+  const p=String(dateStr).split('-').map(Number);if(p.length<3||p.some(isNaN))return NaN;
+  const t=new Date();
+  return Math.round((Date.UTC(p[0],p[1]-1,p[2])-Date.UTC(t.getFullYear(),t.getMonth(),t.getDate()))/86400000);
+}
+async function loadUnlocks(){
+  try{
+    const r=await fetch('unlocks.json?v='+Math.floor(Date.now()/3600000));
+    if(!r.ok)throw new Error(r.status);
+    const j=await r.json();
+    if(!j||!Array.isArray(j.items))throw new Error('format');
+    unlocksData=j;
+  }catch(e){unlocksData=null;console.warn('Déblocages indisponibles:',e.message);}
+  renderUnlocks();
+}
+function renderUnlocks(){
+  const sec=$('unlocksSection'),list=$('unlocksList');if(!sec||!list)return;
+  if(!unlocksData){sec.style.display='none';return;}
+  const rows=unlocksData.items.map(it=>Object.assign({},it,{d:ulDays(it.date)})).filter(it=>it.d>=0&&it.d<=unlocksRange).sort((a,b)=>a.d-b.d||(b.usd||0)-(a.usd||0));
+  sec.style.display='';
+  const note=$('ulNote');
+  if(note){
+    const age=ulDays(unlocksData.updated);
+    const up=String(unlocksData.updated||'').split('-').map(Number),upTxt=(up.length===3&&!up.some(isNaN))?up[2]+' '+UL_MONTHS[up[1]-1]+' '+up[0]:'?';
+    note.textContent='Estimations ('+(unlocksData.source||'sources publiques')+'), mises à jour le '+upTxt+(isFinite(age)&&age<-45?' — données anciennes':'')+'. Un déblocage n\u2019entraîne pas forcément des ventes.';
+  }
+  if(!rows.length){list.innerHTML='<div class="loader-error">Aucun déblocage prévu sur cette période</div>';return;}
+  list.innerHTML=rows.map(it=>{
+    const coin=Object.values(liveData).find(c=>symOf(c)===String(it.sym).toUpperCase());
+    let usd=null,live=false;
+    if(it.tokens&&coin&&coin.current_price){usd=it.tokens*coin.current_price;live=true;}else if(it.usd){usd=it.usd;}
+    const dt=String(it.date).split('-').map(Number);
+    const when=it.d===0?'aujourd\u2019hui':it.d===1?'demain':'dans '+it.d+' j';
+    const val=usd?`<div class="ul-val">${it.max?'jusqu\u2019à ':'≈ '}${ulUsd(usd)}</div>`:(it.tokens?`<div class="ul-val">${ulTok(it.tokens)}</div>`:'<div class="ul-val">—</div>');
+    const sub=[];
+    if(it.pct)sub.push(String(it.pct).replace('.',',')+' % de l\u2019offre');
+    if(it.tokens&&usd)sub.push(ulTok(it.tokens)+' '+escapeHTML(it.sym));
+    const logo=(coin&&coin.image)?`<img class="ul-logo" src="${escapeHTML(coin.image)}" alt="" loading="lazy" onerror="this.style.display='none'">`:'';
+    return`<div class="event-item"${coin?` data-coin-id="${escapeHTML(coin.id)}" style="cursor:pointer"`:''}>
+      <div class="event-date">${dt[2]} ${UL_MONTHS[(dt[1]||1)-1]}<span class="ul-days">${when}</span></div>
+      <div class="event-info">
+        <div class="event-title">${logo}${escapeHTML(String(it.sym).toUpperCase())}<span class="ul-name">${escapeHTML(it.name||'')}</span></div>
+        <div class="event-desc">${escapeHTML(it.note||'')}</div>
+      </div>
+      <div class="ul-right">${val}${sub.length?`<div class="ul-sub">${sub[0]}</div>`:''}</div>
+    </div>`;
+  }).join('');
+}
+function initUnlocks(){
+  const tabs=$('ulTabs');
+  if(tabs)tabs.addEventListener('click',e=>{
+    const b=e.target.closest('.tab[data-ul]');if(!b)return;
+    unlocksRange=+b.dataset.ul;
+    tabs.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===b));
+    renderUnlocks();
+  });
+  attachRowClickHandler('unlocksList');
+  loadUnlocks();
 }
 
 async function fetchGlobal(){
@@ -4969,6 +5098,7 @@ attachRowClickHandler('newListingsList');
 attachRowClickHandler('newList');
 attachRowClickHandler('hmWrap');
 initHeatmap();
+initUnlocks();
 (function(){const b=$('newMoreBtn');if(b)b.addEventListener('click',()=>{newExpanded=!newExpanded;b.textContent=newExpanded?'Voir moins ▲':'Voir plus ▼';renderNewCard();});})();
 refreshNewCard();
 setInterval(refreshNewCard,60000);
