@@ -1132,20 +1132,29 @@ img,canvas{max-width:100%;}
 .hm-ratio{flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,hsl(356,72%,40%),hsl(356,72%,32%));overflow:hidden;}
 .hm-ratio i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,hsl(148,70%,30%),hsl(148,72%,42%));transition:width .8s cubic-bezier(.2,.8,.2,1);}
 .hm-wrap{position:relative;margin:12px;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 25% 15%,rgba(255,255,255,.05),transparent 55%),var(--s2);border:1px solid rgba(255,255,255,.06);box-shadow:inset 0 0 40px rgba(0,0,0,.4);}
-.hm-cell{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#fff;text-decoration:none;overflow:hidden;border-radius:8px;line-height:1.1;text-align:center;cursor:pointer;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 -14px 24px rgba(0,0,0,.2),0 0 0 1px rgba(255,255,255,.04);
-  transition:transform .22s cubic-bezier(.2,.8,.2,1),filter .22s,box-shadow .22s;}
-.hm-cell:hover{transform:scale(1.04);z-index:3;filter:brightness(1.18) saturate(1.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 24px -8px rgba(0,0,0,.7);}
-.hm-cell.hot{box-shadow:inset 0 1px 0 rgba(255,255,255,.2),inset 0 -14px 24px rgba(0,0,0,.2),0 0 16px -5px var(--g);}
-.hm-cell img{border-radius:50%;object-fit:cover;background:rgba(255,255,255,.12);box-shadow:0 2px 6px rgba(0,0,0,.35);}
-.hm-cell b{font-weight:800;letter-spacing:.3px;text-shadow:0 1px 3px rgba(0,0,0,.55);}
-.hm-cell span{font-family:var(--mono);font-weight:700;background:rgba(0,0,0,.3);padding:1px 6px;border-radius:999px;text-shadow:none;}
-.hm-anim .hm-cell{animation:hmIn .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i)*16ms);}
-@keyframes hmIn{from{opacity:0;transform:scale(.86);}to{opacity:1;transform:none;}}
+.hm-bub{position:absolute;display:block;color:#fff;text-decoration:none;cursor:pointer;animation:hmFloat var(--dur,7s) ease-in-out var(--dl,0s) infinite;will-change:transform;-webkit-tap-highlight-color:transparent;}
+.hm-bub .hm-in{position:absolute;inset:0;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;overflow:hidden;line-height:1.05;text-align:center;
+  border:1px solid rgba(255,255,255,.2);
+  box-shadow:inset 0 -10px 20px rgba(0,0,0,.28),inset 0 2px 4px rgba(255,255,255,.3),0 8px 18px -8px rgba(0,0,0,.7);
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),filter .28s,box-shadow .28s;}
+.hm-bub .hm-in::before{content:"";position:absolute;left:17%;top:9%;width:40%;height:24%;border-radius:50%;background:radial-gradient(ellipse at 50% 45%,rgba(255,255,255,.55),rgba(255,255,255,0) 72%);transform:rotate(-30deg);pointer-events:none;}
+.hm-bub:hover{z-index:4;}
+.hm-bub:hover .hm-in{transform:scale(1.1);filter:brightness(1.15) saturate(1.1);}
+.hm-bub.hot .hm-in{box-shadow:inset 0 -10px 20px rgba(0,0,0,.28),inset 0 2px 4px rgba(255,255,255,.3),0 0 24px -3px var(--g);}
+.hm-bub img{border-radius:50%;object-fit:cover;background:rgba(255,255,255,.15);box-shadow:0 2px 6px rgba(0,0,0,.35);}
+.hm-b-sym{font-weight:800;letter-spacing:.2px;text-shadow:0 1px 3px rgba(0,0,0,.6);}
+.hm-b-pct{font-family:var(--mono);font-weight:700;background:rgba(0,0,0,.3);padding:1px 6px;border-radius:999px;}
+@keyframes hmFloat{0%,100%{transform:translate(0,0)}25%{transform:translate(var(--dx),calc(var(--dy)*-.6))}50%{transform:translate(calc(var(--dx)*-.7),var(--dy))}75%{transform:translate(calc(var(--dx)*.5),calc(var(--dy)*.8))}}
+.hm-anim .hm-bub .hm-in{animation:hmPop .75s cubic-bezier(.2,.9,.3,1.25) both;animation-delay:calc(var(--i)*22ms);}
+@keyframes hmPop{from{opacity:0;transform:scale(.35);}to{opacity:1;transform:none;}}
+.hm-flash .hm-in{animation:hmFlash .6s ease-out;}
+@keyframes hmFlash{0%{filter:brightness(1.6) saturate(1.4);}100%{filter:none;}}
+@media(prefers-reduced-motion:reduce){.hm-bub{animation:none;}.hm-anim .hm-bub .hm-in,.hm-flash .hm-in{animation:none;}}
+.cd-share-pill{display:inline-flex;align-items:center;gap:6px;padding:3px 12px;border-radius:999px;border:1px solid var(--red);background:rgba(220,38,38,.1);color:var(--red);font-family:var(--mono);font-size:.62rem;font-weight:800;letter-spacing:.3px;cursor:pointer;transition:all .2s;}
+.cd-share-pill:hover{background:var(--red);color:#fff;}
 .hm-legend{display:flex;align-items:center;gap:8px;padding:0 14px 6px;font-family:var(--mono);font-size:.58rem;color:var(--muted);}
 .hm-legend .hm-bar{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,hsl(356,75%,38%),hsl(220,12%,20%) 50%,hsl(148,72%,36%));box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);}
 .hm-note{padding:0 14px 12px;font-family:var(--mono);font-size:.55rem;color:var(--muted);line-height:1.5;}
-@media(prefers-reduced-motion:reduce){.hm-anim .hm-cell{animation:none;}.hm-cell{transition:none;}}
 @media(min-width:768px){.tri-grid>.new-card{grid-column:1/-1;}}
 </style>
 </head>
@@ -1275,7 +1284,7 @@ img,canvas{max-width:100%;}
       <div class="hm-stats" id="hmStats"></div>
       <div class="hm-wrap" id="hmWrap"><div class="loader"><div class="spinner"></div>Chargement…</div></div>
       <div class="hm-legend"><span id="hmMin">−8 %</span><i class="hm-bar"></i><span id="hmMax">+8 %</span></div>
-      <div class="hm-note">Taille = capitalisation (échelle adoucie), hors stablecoins. Touche une case pour le détail.</div>
+      <div class="hm-note">Taille de la bulle = capitalisation (échelle adoucie), hors stablecoins. Touche une bulle pour le détail.</div>
     </div>
   </div>
 
@@ -1625,7 +1634,7 @@ img,canvas{max-width:100%;}
         <div class="cd-lastp-lbl"><span class="cd-live-dot"></span> Dernier cours</div>
         <div class="cd-lastp" id="cdLastP">—</div>
         <div class="cd-usdp-row"><span id="cdUsdP">$—</span></div>
-        <div class="cd-badges"><b id="cdRankBadge">🔥 N° —</b></div>
+        <div class="cd-badges"><b id="cdRankBadge">🔥 N° —</b><button class="cd-share-pill" id="cdShareBtn2" type="button" aria-label="Partager cette crypto">↗ Partager</button></div>
       </div>
       <div class="cd-stats-right">
         <div class="cd-stat-tile"><span class="k">Var. 24h</span><span class="v" id="cdChgPct">—</span></div>
@@ -2463,6 +2472,22 @@ let cdFullDesc='',cdDescExpanded=false;
 
 function fmtAxis(v){if(v>=1000)return v.toFixed(0);if(v>=1)return v.toFixed(2);return v.toFixed(6);}
 
+// Partage de la fiche : prix + variation + lien direct vers cette crypto (?coin=...)
+async function shareCoin(){
+  const id=cdCurrentCoinId,d=id&&liveData[id];
+  let url=window.location.href;
+  try{const u=new URL(window.location.href);if(id)u.searchParams.set('coin',id);url=u.toString();}catch(e){}
+  const sym=d?symOf(d):'';
+  const title=d?`${d.name||sym} (${sym}) sur SunuCrypto`:'SunuCrypto';
+  const text=d?`${d.name||sym} (${sym}) : ${fmtP(d.current_price)} (${fmtPct(d.price_change_percentage_24h||0)} sur 24 h)`:'';
+  try{
+    if(navigator.share){await navigator.share({title,text,url});return;}
+  }catch(e){if(e&&e.name==='AbortError')return;}   // partage annulé : rien à faire
+  try{
+    await navigator.clipboard.writeText(text?text+'\n'+url:url);
+    showNotification('Lien copié','Prix et lien prêts à coller','📋',2500);
+  }catch(err){showNotification('Partage indisponible','Copie le lien depuis la barre d’adresse','⚠️',3500);}
+}
 async function openCoinDetail(id){
   const d=liveData[id];if(!d)return;
   cdCurrentCoinId=id;
@@ -3274,13 +3299,13 @@ async function fetchArbitrage(){
 // Upbit : il n'existe aucune fenêtre d'avance possible — la paire n'existe dans l'API
 // publique qu'à l'instant précis où le trading s'ouvre. Le repli par comparaison de tickers
 // est donc ici la détection la plus rapide qui soit techniquement possible.
-const LISTING_EX_LABELS={binance:'Binance',upbit:'Upbit',mexc:'MEXC',gate:'Gate'};
+const LISTING_EX_LABELS={binance:'Binance',upbit:'Upbit',gate:'Gate'};
 let knownListingSymbols=null,newListingsFeed=[],knownAnnouncementSymbols=null,binanceAnnouncementBroken=false;
 
 function loadKnownListings(){
   if(knownListingSymbols)return;
   knownListingSymbols={};
-  ['binance','upbit','mexc'].forEach(exId=>{
+  ['binance','upbit'].forEach(exId=>{
     try{
       const saved=localStorage.getItem('sunuCryptoListings_'+exId);
       knownListingSymbols[exId]=saved?new Set(JSON.parse(saved)):null; // null = jamais initialisé
@@ -3415,22 +3440,9 @@ async function fetchUpbitMarketBases(){
   }catch(e){clearTimeout(timeout);console.warn('Upbit fetch:',e.message);return null;}
 }
 
-// MEXC : liste les projets très tôt ; aucune date de listing publique, donc détection par comparaison de paires
-async function fetchMexcBases(){
-  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),9000);
-  try{
-    const r=await fetch('https://api.mexc.com/api/v3/ticker/price',{signal:controller.signal});
-    clearTimeout(timeout);
-    if(!r.ok)throw new Error('MEXC '+r.status);
-    const j=await r.json();
-    return(Array.isArray(j)?j:[]).map(x=>x.symbol||'').filter(sy=>/USDT$/.test(sy)).map(sy=>sy.slice(0,-4)).filter(b=>b&&!/\d+[LS]$/.test(b));
-  }catch(e){clearTimeout(timeout);console.warn('MEXC fetch:',e.message);return null;}
-}
 async function fetchListingWatchers(){
   const upbitBases=await fetchUpbitMarketBases();
   if(upbitBases)detectNewListingsByTicker('upbit',upbitBases);
-  const mexcBases=await fetchMexcBases();
-  if(mexcBases&&mexcBases.length>50)detectNewListingsByTicker('mexc',mexcBases);
 }
 
 function msAgo(ts){
@@ -3458,30 +3470,14 @@ function renderNewListings(){
       <span class="listing-ex">${escapeHTML(LISTING_EX_LABELS[item.ex]||item.ex)}</span>
       <span class="listing-time">${msAgo(item.ts)}</span>
     </div>`;
-  }).join('')+'<div class="listing-note">Suivi : Binance, Upbit et MEXC. 📢 = annonce officielle lue directement · ⚡ = trading vient de s\'ouvrir (paire détectée).</div>';
+  }).join('')+'<div class="listing-note">Suivi limité à Binance et Upbit. 📢 = annonce officielle lue directement · ⚡ = trading vient de s\'ouvrir (paire détectée).</div>';
 }
 
 
 // ═══════════════════════════════════════════════
 // CARTE « NOUVEAUX » (4e carte du carrousel) — annonces Binance + détections en direct
 // ═══════════════════════════════════════════════
-let newBoard=[],newBoardAnn=[],newExpanded=false;
-async function fetchBinanceNewBoard(){
-  try{
-    const j=await adFetchJson('https://www.binance.com/bapi/composite/v1/public/cms/article/catalog/list/query?catalogId=48&pageNo=1&pageSize=20');
-    const arts=(j&&j.data&&j.data.articles)||(j&&j.data&&j.data.catalogs&&j.data.catalogs[0]&&j.data.catalogs[0].articles)||null;
-    if(!Array.isArray(arts))return null;
-    const out=[];
-    arts.forEach(a=>{
-      const title=a.title||'';
-      if(!/will list/i.test(title))return;
-      const m=[...title.matchAll(/\(([A-Z0-9]{2,10})\)/g)];if(!m.length)return;
-      const sym=m[m.length-1][1];
-      if(!out.some(x=>x.sym===sym))out.push({sym,ts:+a.releaseDate||0,ex:'binance',method:'annonce'});
-    });
-    return out;
-  }catch(e){return null;}
-}
+let newBoard=[],newExpanded=false;
 // Gate : date de début de trading (buy_start) fournie par l'API publique → historique immédiat
 let gateBoard=[],gateLast=0;
 async function fetchGateNewBoard(){
@@ -3504,22 +3500,19 @@ async function fetchExTicker(ex,sym){
   try{
     const q=encodeURIComponent(sym);
     const url=ex==='gate'?`https://api.gateio.ws/api/v4/spot/tickers?currency_pair=${q}_USDT`
-      :ex==='mexc'?`https://api.mexc.com/api/v3/ticker/24hr?symbol=${q}USDT`
       :`https://api.binance.com/api/v3/ticker/24hr?symbol=${q}USDT`;
     const r=await fetch(url,{signal:c.signal});clearTimeout(t);if(!r.ok)return null;
     let j=await r.json();
     if(ex==='gate'){j=Array.isArray(j)?j[0]:j;if(!j)return null;const p=parseFloat(j.last),ch=parseFloat(j.change_percentage);return p>0?{price:p,chg:isFinite(ch)?ch:0}:null;}
-    const p=parseFloat(j.lastPrice);let ch=parseFloat(j.priceChangePercent);
-    if(ex==='mexc'){const o=parseFloat(j.openPrice);ch=o>0?(p-o)/o*100:0;}   // calculé : évite toute ambiguïté d'unité
+    const p=parseFloat(j.lastPrice),ch=parseFloat(j.priceChangePercent);
     return p>0?{price:p,chg:isFinite(ch)?ch:0}:null;
   }catch(e){clearTimeout(t);return null;}
 }
 async function refreshNewCard(){
   loadKnownListings();
-  const [ann,gate]=await Promise.all([fetchBinanceNewBoard(),fetchGateNewBoard()]);
-  if(ann)newBoardAnn=ann;
+  const gate=await fetchGateNewBoard();
   const map=new Map();
-  [...newBoardAnn,...(gate||[]),...newListingsFeed].forEach(x=>{
+  [...(gate||[]),...newListingsFeed.filter(x=>x.ex==='upbit')].forEach(x=>{   // cartes : Gate + Upbit uniquement
     const cur=map.get(x.sym);
     if(!cur||(x.ts||0)>cur.ts)map.set(x.sym,{sym:x.sym,ts:x.ts||0,ex:x.ex,method:x.method});
   });
@@ -3527,8 +3520,10 @@ async function refreshNewCard(){
   newBoard=[...map.values()].sort((a,b)=>b.ts-a.ts).slice(0,10).map(x=>Object.assign(x,prev[x.sym]&&prev[x.sym].price?{price:prev[x.sym].price,chg:prev[x.sym].chg}:{}));
   renderNewCard();
   await Promise.all(newBoard.map(async it=>{
-    let tk=await fetchExTicker(it.ex,it.sym);
-    if(!tk&&it.ex!=='binance')tk=await fetchExTicker('binance',it.sym);   // ex. Upbit (cotée en KRW) → prix USDT Binance
+    // Prix en USDT : Gate d'abord, sinon Binance (utile pour Upbit, cotée en KRW), sinon Gate pour les jetons Upbit
+    let tk=it.ex==='gate'?await fetchExTicker('gate',it.sym):null;
+    if(!tk)tk=await fetchExTicker('binance',it.sym);
+    if(!tk&&it.ex!=='gate')tk=await fetchExTicker('gate',it.sym);
     if(tk){it.price=tk.price;it.chg=tk.chg;return;}
     const coin=Object.values(liveData).find(c=>symOf(c)===it.sym);
     if(coin&&coin.current_price){it.price=coin.current_price;it.chg=coin.price_change_percentage_24h||0;}
@@ -3569,60 +3564,82 @@ const HM_STABLES=new Set(['USDT','USDC','DAI','FDUSD','USDE','TUSD','USDS','PYUS
 let hmPeriod='24h';
 function hmColors(p){
   const max=hmPeriod==='7d'?20:8,t=Math.min(Math.abs(p)/max,1),e=Math.pow(t,0.7);
-  if(Math.abs(p)<0.25)return{c1:'hsl(220,13%,25%)',c2:'hsl(220,14%,17%)',g:'hsl(220,13%,30%)',t};
+  if(Math.abs(p)<0.25)return{hi:'hsl(220,13%,38%)',c1:'hsl(220,13%,27%)',c2:'hsl(220,14%,16%)',g:'hsl(220,13%,30%)',t};
   const h=p>=0?148:356,sat=Math.round(22+e*53),l=Math.round(17+e*22);
-  return{c1:`hsl(${h},${sat}%,${l+8}%)`,c2:`hsl(${h},${sat}%,${Math.max(8,l-6)}%)`,g:`hsl(${h},${Math.min(85,sat+10)}%,${l+14}%)`,t};
+  return{hi:`hsl(${h},${Math.min(90,sat+6)}%,${l+22}%)`,c1:`hsl(${h},${sat}%,${l+8}%)`,c2:`hsl(${h},${sat}%,${Math.max(8,l-7)}%)`,g:`hsl(${h},${Math.min(85,sat+10)}%,${l+14}%)`,t};
 }
-// Treemap « squarified » : items triés par valeur décroissante
-function layoutTreemap(items,W,H){
-  const total=items.reduce((s,i)=>s+i.v,0),k=W*H/total;
-  items.forEach(i=>{i.a=i.v*k;});
-  const out=[];let x=0,y=0,w=W,h=H,row=[];
-  const sum=r=>r.reduce((t,i)=>t+i.a,0);
-  const worst=(r,side)=>{const s=sum(r),mx=Math.max(...r.map(i=>i.a)),mn=Math.min(...r.map(i=>i.a));return Math.max(side*side*mx/(s*s),(s*s)/(side*side*mn));};
-  const place=r=>{
-    const s=sum(r);
-    if(w>=h){const cw=s/h;let cy=y;r.forEach(i=>{const ch=i.a/cw;out.push(Object.assign({},i,{x,y:cy,w:cw,h:ch}));cy+=ch;});x+=cw;w-=cw;}
-    else{const rh=s/w;let cx=x;r.forEach(i=>{const cw=i.a/rh;out.push(Object.assign({},i,{x:cx,y,w:cw,h:rh}));cx+=cw;});y+=rh;h-=rh;}
-  };
-  let idx=0;
-  while(idx<items.length){
-    const side=Math.min(w,h),it=items[idx];
-    if(!row.length||worst(row.concat([it]),side)<=worst(row,side)){row.push(it);idx++;}
-    else{place(row);row=[];}
+// Placement de bulles : rayon ∝ √(valeur), puis relaxation pour éviter tout chevauchement
+function packBubbles(vals,W,H,minR){
+  const gap=5,pad=6,sumV=vals.reduce((a,b)=>a+b,0);
+  let fill=0.6,pts=[];
+  for(let attempt=0;attempt<16;attempt++){
+    const k=Math.sqrt(fill*W*H/(Math.PI*sumV));
+    pts=vals.map(v=>({r:Math.max(minR,k*Math.sqrt(v))}));
+    pts.forEach((p,i)=>{const a=i*2.39996,d=Math.sqrt(i+.5)*Math.min(W,H)*.075;p.x=W/2+Math.cos(a)*d;p.y=H/2+Math.sin(a)*d*(H/W);});
+    for(let it=0;it<320;it++){
+      const grav=.012*Math.max(0,1-it/220);   // attraction vers le centre qui s'éteint : les dernières passes ne font que séparer
+      pts.forEach(p=>{p.x+=(W/2-p.x)*grav;p.y+=(H/2-p.y)*grav;});
+      for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+        const a=pts[i],b=pts[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.01,min=a.r+b.r+gap;
+        if(d<min){const o=min-d,ux=dx/d,uy=dy/d,wa=b.r/(a.r+b.r),wb=a.r/(a.r+b.r);a.x-=ux*o*wa;a.y-=uy*o*wa;b.x+=ux*o*wb;b.y+=uy*o*wb;}
+      }
+      pts.forEach(p=>{p.x=Math.min(W-p.r-pad,Math.max(p.r+pad,p.x));p.y=Math.min(H-p.r-pad,Math.max(p.r+pad,p.y));});
+    }
+    let bad=0;
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const a=pts[i],b=pts[j];if(Math.hypot(b.x-a.x,b.y-a.y)<a.r+b.r+gap-1.5)bad++;}
+    if(!bad)break;
+    fill*=0.9;
   }
-  if(row.length)place(row);
-  return out;
+  return pts;
 }
 let hmAnimNext=true;
+let hmState=null;
+const hmRand=n=>{const x=Math.sin(n*12.9898+78.233)*43758.5453;return x-Math.floor(x);};
 function renderHeatmap(){
   const wrap=$('hmWrap');if(!wrap||!allCoins||!allCoins.length)return;
   const W=wrap.clientWidth;if(W<50)return;
-  const mobile=W<500,H=Math.round(mobile?W*1.15:W*0.55);
+  const mobile=W<500,H=Math.round(mobile?W*1.1:W*0.52);
   wrap.style.height=H+'px';
   const key=hmPeriod==='7d'?'price_change_percentage_7d_in_currency':'price_change_percentage_24h';
-  const coins=allCoins.filter(c=>c.market_cap>0&&c[key]!=null&&!HM_STABLES.has(symOf(c))).sort((a,b)=>b.market_cap-a.market_cap).slice(0,mobile?30:45);
+  const coins=allCoins.filter(c=>c.market_cap>0&&c[key]!=null&&!HM_STABLES.has(symOf(c))).sort((a,b)=>b.market_cap-a.market_cap).slice(0,mobile?28:40);
   const mn=$('hmMin'),mx=$('hmMax'),lim=hmPeriod==='7d'?20:8;
   if(mn)mn.textContent='−'+lim+' %';if(mx)mx.textContent='+'+lim+' %';
-  if(!coins.length){wrap.innerHTML='<div class="loader-error">Aucune donnée</div>';return;}
+  if(!coins.length){wrap.innerHTML='<div class="loader-error">Aucune donnée</div>';hmState=null;return;}
   // Baromètre : part des cryptos en hausse parmi celles affichées
   const upN=coins.filter(c=>(c[key]||0)>=0).length,dnN=coins.length-upN,st=$('hmStats');
   if(st)st.innerHTML=`<span class="up">▲ ${upN} en hausse</span><div class="hm-ratio"><i style="width:${(upN/coins.length*100).toFixed(1)}%"></i></div><span class="dn">${dnN} en baisse ▼</span>`;
-  const cells=layoutTreemap(coins.map(c=>({c,v:Math.pow(c.market_cap,0.6)})),W,H);
-  if(hmAnimNext){wrap.classList.add('hm-anim');setTimeout(()=>wrap.classList.remove('hm-anim'),1400);hmAnimNext=false;}
-  wrap.innerHTML=cells.map(({c,x,y,w,h},n)=>{
-    const p=c[key]||0,sym=symOf(c),m=Math.min(w,h),fs=Math.max(8,Math.min(22,m/4.2));
-    const col=hmColors(p);
-    const showSym=w>34&&h>24,showPct=w>46&&h>40,showLogo=!!c.image&&m>62;
-    const lg=Math.round(Math.min(28,Math.max(15,m/3.6)));
-    return`<a href="javascript:void(0)" class="hm-cell${col.t>0.75?' hot':''}" data-coin-id="${escapeHTML(c.id)}" title="${escapeHTML(c.name||sym)} ${fmtPct(p)}" style="--i:${n};--g:${col.g};left:${(x+1.5).toFixed(1)}px;top:${(y+1.5).toFixed(1)}px;width:${Math.max(0,w-3).toFixed(1)}px;height:${Math.max(0,h-3).toFixed(1)}px;background:linear-gradient(145deg,${col.c1},${col.c2})">${showLogo?`<img src="${escapeHTML(c.image)}" alt="" width="${lg}" height="${lg}" loading="lazy" onerror="this.style.display='none'">`:''}${showSym?`<b style="font-size:${fs.toFixed(1)}px">${escapeHTML(sym)}</b>`:''}${showPct?`<span style="font-size:${Math.max(8,fs*0.6).toFixed(1)}px">${fmtPct(p)}</span>`:''}</a>`;
+  const idsKey=coins.map(c=>c.id).join('|');
+  const els={};wrap.querySelectorAll('.hm-bub').forEach(e=>{els[e.dataset.coinId]=e;});
+  // Mêmes cryptos, même largeur : on garde les bulles (et leur flottement), on ne change que couleurs et pourcentages
+  if(hmState&&hmState.W===W&&hmState.key===idsKey&&Object.keys(els).length===coins.length){
+    coins.forEach(c=>{
+      const el=els[c.id];if(!el)return;
+      const p=c[key]||0,col=hmColors(p),inn=el.firstElementChild;
+      inn.style.background=`radial-gradient(circle at 34% 26%,${col.hi},${col.c1} 42%,${col.c2} 100%)`;
+      el.style.setProperty('--g',col.g);el.classList.toggle('hot',col.t>0.75);
+      el.title=`${c.name||symOf(c)} ${fmtPct(p)}`;
+      const pe=inn.querySelector('.hm-b-pct');if(pe)pe.textContent=fmtPct(p);
+    });
+    if(hmState.flash){wrap.classList.add('hm-flash');setTimeout(()=>wrap.classList.remove('hm-flash'),700);hmState.flash=false;}
+    return;
+  }
+  const pts=packBubbles(coins.map(c=>Math.pow(c.market_cap,0.5)),W,H,mobile?15:17);
+  if(hmAnimNext){wrap.classList.add('hm-anim');setTimeout(()=>wrap.classList.remove('hm-anim'),1800);hmAnimNext=false;}
+  wrap.innerHTML=coins.map((c,n)=>{
+    const p=c[key]||0,sym=symOf(c),col=hmColors(p),pt=pts[n],r=pt.r,d=r*2;
+    const showSym=r>=16,showPct=r>=24,showLogo=!!c.image&&r>=36;
+    const fs=Math.max(8,Math.min(20,r*0.4)),lg=Math.round(Math.min(30,Math.max(16,r*0.5)));
+    const amp=Math.min(7,3+r*0.05),dx=((hmRand(n+1)-.5)*2*amp).toFixed(1),dy=((hmRand(n+50)-.5)*2*amp).toFixed(1);
+    const dur=(6+hmRand(n+99)*4).toFixed(1),dl=(-hmRand(n+7)*8).toFixed(1);
+    return`<a href="javascript:void(0)" class="hm-bub${col.t>0.75?' hot':''}" data-coin-id="${escapeHTML(c.id)}" title="${escapeHTML(c.name||sym)} ${fmtPct(p)}" style="--i:${n};--g:${col.g};--dx:${dx}px;--dy:${dy}px;--dur:${dur}s;--dl:${dl}s;left:${(pt.x-r).toFixed(1)}px;top:${(pt.y-r).toFixed(1)}px;width:${d.toFixed(1)}px;height:${d.toFixed(1)}px"><span class="hm-in" style="background:radial-gradient(circle at 34% 26%,${col.hi},${col.c1} 42%,${col.c2} 100%)">${showLogo?`<img src="${escapeHTML(c.image)}" alt="" width="${lg}" height="${lg}" loading="lazy" onerror="this.style.display='none'">`:''}${showSym?`<b class="hm-b-sym" style="font-size:${fs.toFixed(1)}px">${escapeHTML(sym)}</b>`:''}${showPct?`<i class="hm-b-pct" style="font-style:normal;font-size:${Math.max(8,fs*0.62).toFixed(1)}px">${fmtPct(p)}</i>`:''}</span></a>`;
   }).join('');
+  hmState={W,key:idsKey,flash:false};
 }
 function initHeatmap(){
   const tabs=$('hmTabs');
   if(tabs)tabs.addEventListener('click',e=>{
     const b=e.target.closest('.tab[data-hm]');if(!b)return;
-    hmPeriod=b.dataset.hm;hmAnimNext=true;
+    hmPeriod=b.dataset.hm;if(hmState)hmState.flash=true;
     tabs.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===b));
     renderHeatmap();
   });
@@ -4554,15 +4571,8 @@ function initStaticControls(){
   });
   $('top100Prev').addEventListener('click',top100PrevPage);
   $('top100Next').addEventListener('click',top100NextPage);
-  $('cdShareBtn').addEventListener('click',async()=>{
-    try{
-      const url=window.location.href;
-      if(navigator.share){await navigator.share({title:document.title,url});}
-      else{await navigator.clipboard.writeText(url);showNotification('Lien copié','','📋',2500);}
-    }catch(e){
-      try{await navigator.clipboard.writeText(window.location.href);showNotification('Lien copié','','📋',2500);}catch(err){}
-    }
-  });
+  $('cdShareBtn').addEventListener('click',shareCoin);
+  const shareBtn2=$('cdShareBtn2');if(shareBtn2)shareBtn2.addEventListener('click',shareCoin);
   $('cdFavBtn').addEventListener('click',()=>{
     if(!cdCurrentCoinId)return;
     const d=liveData[cdCurrentCoinId];
