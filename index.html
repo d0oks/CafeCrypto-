@@ -1028,6 +1028,7 @@ footer{border-top:1px solid var(--border-red);padding:16px 20px;display:flex;fle
   .col-left{display:contents;}
   .col-right{display:contents;}
   .crypto-sections{order:1;}
+  .heatmap-section{order:2;}
   .top100-section{order:2;}
   .articles-section{order:3;}
   .pub-section{order:4;}
@@ -1118,6 +1119,23 @@ img,canvas{max-width:100%;}
 .dd-score{font-size:1.6rem;font-weight:700;color:var(--gold);font-family:var(--mono)}
 /* iOS : évite le zoom automatique au focus des champs (zoom manuel autorisé) */
 @supports(-webkit-touch-callout:none){input,select,textarea{font-size:16px!important;}}
+
+/* Carte thermique + carte « Nouveaux » */
+.new-live{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.58rem;font-weight:800;letter-spacing:1px;color:var(--green);background:rgba(34,197,94,.1);padding:5px 9px;border-radius:8px;}
+.new-live i{width:6px;height:6px;border-radius:50%;background:var(--green);animation:newPulse 1.4s infinite;}
+@keyframes newPulse{0%,100%{opacity:1}50%{opacity:.25}}
+.new-badge{font-family:var(--mono);font-size:.5rem;font-weight:800;letter-spacing:.5px;color:#fff;background:linear-gradient(135deg,var(--red),#f87171);padding:1px 5px;border-radius:4px;margin-left:5px;vertical-align:middle;}
+.cr-chg.chg-flat{color:var(--muted2);background:var(--s2);}
+.heatmap-section{width:100%;margin-top:20px;animation:fadeUp .5s ease both;}
+.hm-wrap{position:relative;margin:12px;border-radius:10px;overflow:hidden;background:var(--s2);}
+.hm-cell{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-decoration:none;overflow:hidden;border-radius:4px;transition:filter .2s;line-height:1.15;text-align:center;cursor:pointer;}
+.hm-cell:hover{filter:brightness(1.25);z-index:2;}
+.hm-cell b{font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.5);}
+.hm-cell span{font-family:var(--mono);font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,.5);}
+.hm-legend{display:flex;align-items:center;gap:8px;padding:0 14px 6px;font-family:var(--mono);font-size:.58rem;color:var(--muted);}
+.hm-legend .hm-bar{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,#dc2626,#2a2f3a,#16a34a);}
+.hm-note{padding:0 14px 12px;font-family:var(--mono);font-size:.55rem;color:var(--muted);line-height:1.5;}
+@media(min-width:768px){.tri-grid>.new-card{grid-column:1/-1;}}
 </style>
 </head>
 <body>
@@ -1221,9 +1239,32 @@ img,canvas{max-width:100%;}
         <div id="loseList"><div class="loader"><div class="spinner"></div>Chargement…</div></div>
         <button class="see-more-btn" data-list="loseList">Voir plus ▼</button>
       </div>
+      <div class="crypto-section-card new-card">
+        <div class="crypto-section-hdr">
+          <div class="card-title">🆕 Nouveaux</div>
+          <div class="new-live"><i></i>LIVE</div>
+        </div>
+        <div id="newList"><div class="loader"><div class="spinner"></div>Chargement…</div></div>
+        <button class="see-more-btn" id="newMoreBtn">Voir plus ▼</button>
+      </div>
     </div>
     </div>
-    <div class="tri-dots" id="triDots"><i class="on"></i><i></i><i></i></div>
+    <div class="tri-dots" id="triDots"><i class="on"></i><i></i><i></i><i></i></div>
+  </div>
+
+  <div class="heatmap-section">
+    <div class="crypto-section-card">
+      <div class="crypto-section-hdr">
+        <div class="card-title">🗺️ Carte du marché</div>
+        <div class="tab-group" id="hmTabs">
+          <button class="tab active" data-hm="24h">24h</button>
+          <button class="tab" data-hm="7d">7j</button>
+        </div>
+      </div>
+      <div class="hm-wrap" id="hmWrap"><div class="loader"><div class="spinner"></div>Chargement…</div></div>
+      <div class="hm-legend"><span id="hmMin">−8 %</span><i class="hm-bar"></i><span id="hmMax">+8 %</span></div>
+      <div class="hm-note">Taille = capitalisation (échelle adoucie), hors stablecoins. Touche une case pour le détail.</div>
+    </div>
   </div>
 
   <div class="top100-section">
@@ -2285,6 +2326,7 @@ function buildTriSections(coins){
   renderTrendList(trendData.slice(0,trendExpanded?10:5));
   renderWinList(winData.slice(0,winExpanded?10:5));
   renderLoseList(loseData.slice(0,loseExpanded?10:5));
+  try{renderHeatmap();}catch(e){console.warn('Carte thermique:',e.message);}
 }
 
 function renderCryptoRowSparklines(container){
@@ -3264,6 +3306,7 @@ function processListingCandidates(exId,symbols,method){
   newListingsFeed=newListingsFeed.slice(0,30);
   saveListingsFeed();
   renderNewListings();
+  try{refreshNewCard();}catch(e){}
 }
 
 // Repli générique : compare l'univers de paires d'un exchange à celui du cycle précédent
@@ -3391,6 +3434,144 @@ function renderNewListings(){
       <span class="listing-time">${msAgo(item.ts)}</span>
     </div>`;
   }).join('')+'<div class="listing-note">Suivi limité à Binance et Upbit. 📢 = annonce officielle lue directement · ⚡ = trading vient de s\'ouvrir (paire détectée).</div>';
+}
+
+
+// ═══════════════════════════════════════════════
+// CARTE « NOUVEAUX » (4e carte du carrousel) — annonces Binance + détections en direct
+// ═══════════════════════════════════════════════
+let newBoard=[],newBoardAnn=[],newExpanded=false;
+async function fetchBinanceNewBoard(){
+  try{
+    const j=await adFetchJson('https://www.binance.com/bapi/composite/v1/public/cms/article/catalog/list/query?catalogId=48&pageNo=1&pageSize=20');
+    const arts=(j&&j.data&&j.data.articles)||(j&&j.data&&j.data.catalogs&&j.data.catalogs[0]&&j.data.catalogs[0].articles)||null;
+    if(!Array.isArray(arts))return null;
+    const out=[];
+    arts.forEach(a=>{
+      const title=a.title||'';
+      if(!/will list/i.test(title))return;
+      const m=[...title.matchAll(/\(([A-Z0-9]{2,10})\)/g)];if(!m.length)return;
+      const sym=m[m.length-1][1];
+      if(!out.some(x=>x.sym===sym))out.push({sym,ts:+a.releaseDate||0,ex:'binance',method:'annonce'});
+    });
+    return out;
+  }catch(e){return null;}
+}
+async function fetchBinanceTicker(sym){
+  const c=new AbortController();const t=setTimeout(()=>c.abort(),7000);
+  try{
+    const r=await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${encodeURIComponent(sym)}USDT`,{signal:c.signal});
+    clearTimeout(t);if(!r.ok)return null;
+    const j=await r.json();const p=parseFloat(j.lastPrice),ch=parseFloat(j.priceChangePercent);
+    return(isFinite(p)&&p>0)?{price:p,chg:isFinite(ch)?ch:0}:null;
+  }catch(e){clearTimeout(t);return null;}
+}
+async function refreshNewCard(){
+  loadKnownListings();
+  const ann=await fetchBinanceNewBoard();
+  if(ann)newBoardAnn=ann;
+  const map=new Map();
+  [...newBoardAnn,...newListingsFeed].forEach(x=>{
+    const cur=map.get(x.sym);
+    if(!cur||(x.ts||0)>cur.ts)map.set(x.sym,{sym:x.sym,ts:x.ts||0,ex:x.ex,method:x.method});
+  });
+  const prev={};newBoard.forEach(x=>{prev[x.sym]=x;});
+  newBoard=[...map.values()].sort((a,b)=>b.ts-a.ts).slice(0,10).map(x=>Object.assign(x,prev[x.sym]&&prev[x.sym].price?{price:prev[x.sym].price,chg:prev[x.sym].chg}:{}));
+  renderNewCard();
+  await Promise.all(newBoard.map(async it=>{
+    const tk=await fetchBinanceTicker(it.sym);
+    if(tk){it.price=tk.price;it.chg=tk.chg;return;}
+    const coin=Object.values(liveData).find(c=>symOf(c)===it.sym);
+    if(coin&&coin.current_price){it.price=coin.current_price;it.chg=coin.price_change_percentage_24h||0;}
+  }));
+  renderNewCard();
+}
+function renderNewCard(){
+  const el=$('newList');if(!el)return;
+  const data=newBoard.slice(0,newExpanded?10:5);
+  const btn=$('newMoreBtn');if(btn)btn.style.display=newBoard.length>5?'':'none';
+  if(!data.length){el.innerHTML='<div class="loader-error">Aucun nouveau listing pour l\u2019instant</div><div class="listing-note">Annonces Binance et ouvertures détectées (Binance, Upbit), actualisées toutes les 60 s.</div>';return;}
+  el.innerHTML=data.map((it,i)=>{
+    const coin=Object.values(liveData).find(c=>symOf(c)===it.sym);
+    const logo=(coin&&coin.image)?`<img src="${escapeHTML(coin.image)}" alt="" loading="lazy" data-fallback="${escapeHTML(it.sym.slice(0,3))}">`:escapeHTML(it.sym.slice(0,3));
+    const fresh=it.ts&&(Date.now()-it.ts)<86400000;
+    const hasP=it.price>0;
+    const up=(it.chg||0)>=0;
+    return`<a href="javascript:void(0)" class="crypto-row" ${coin?`data-coin-id="${escapeHTML(coin.id)}"`:''}>
+      <div class="cr-rank">${i+1}</div>
+      <div class="cr-icon">${logo}</div>
+      <div class="cr-info">
+        <div class="cr-symbol">${escapeHTML(it.sym)}${fresh?'<span class="new-badge">NEW</span>':''}</div>
+        <div class="cr-name">${escapeHTML(LISTING_EX_LABELS[it.ex]||it.ex)}${it.ts?' · '+msAgo(it.ts):''}</div>
+      </div>
+      <div class="cr-spark"></div>
+      <div class="cr-right">
+        <div class="cr-price">${hasP?fmtP(it.price):'Bientôt'}</div>
+        <div class="cr-chg ${hasP?(up?'chg-green':'chg-red'):'chg-flat'}">${hasP?fmtPct(it.chg||0):'—'}</div>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+// CARTE THERMIQUE DU MARCHÉ (treemap) — taille = capitalisation, couleur = variation
+// ═══════════════════════════════════════════════
+const HM_STABLES=new Set(['USDT','USDC','DAI','FDUSD','USDE','TUSD','USDS','PYUSD','USD1','USDD','BUSD','USDP','GUSD','FRAX','LUSD']);
+let hmPeriod='24h';
+function hmColor(p){
+  const max=hmPeriod==='7d'?20:8,t=Math.min(Math.abs(p)/max,1);
+  const base=[42,47,58],tgt=p>=0?[22,163,74]:[220,38,38];
+  const c=base.map((b,i)=>Math.round(b+(tgt[i]-b)*t));
+  return`rgb(${c[0]},${c[1]},${c[2]})`;
+}
+// Treemap « squarified » : items triés par valeur décroissante
+function layoutTreemap(items,W,H){
+  const total=items.reduce((s,i)=>s+i.v,0),k=W*H/total;
+  items.forEach(i=>{i.a=i.v*k;});
+  const out=[];let x=0,y=0,w=W,h=H,row=[];
+  const sum=r=>r.reduce((t,i)=>t+i.a,0);
+  const worst=(r,side)=>{const s=sum(r),mx=Math.max(...r.map(i=>i.a)),mn=Math.min(...r.map(i=>i.a));return Math.max(side*side*mx/(s*s),(s*s)/(side*side*mn));};
+  const place=r=>{
+    const s=sum(r);
+    if(w>=h){const cw=s/h;let cy=y;r.forEach(i=>{const ch=i.a/cw;out.push(Object.assign({},i,{x,y:cy,w:cw,h:ch}));cy+=ch;});x+=cw;w-=cw;}
+    else{const rh=s/w;let cx=x;r.forEach(i=>{const cw=i.a/rh;out.push(Object.assign({},i,{x:cx,y,w:cw,h:rh}));cx+=cw;});y+=rh;h-=rh;}
+  };
+  let idx=0;
+  while(idx<items.length){
+    const side=Math.min(w,h),it=items[idx];
+    if(!row.length||worst(row.concat([it]),side)<=worst(row,side)){row.push(it);idx++;}
+    else{place(row);row=[];}
+  }
+  if(row.length)place(row);
+  return out;
+}
+function renderHeatmap(){
+  const wrap=$('hmWrap');if(!wrap||!allCoins||!allCoins.length)return;
+  const W=wrap.clientWidth;if(W<50)return;
+  const mobile=W<500,H=Math.round(mobile?W*1.15:W*0.55);
+  wrap.style.height=H+'px';
+  const key=hmPeriod==='7d'?'price_change_percentage_7d_in_currency':'price_change_percentage_24h';
+  const coins=allCoins.filter(c=>c.market_cap>0&&c[key]!=null&&!HM_STABLES.has(symOf(c))).sort((a,b)=>b.market_cap-a.market_cap).slice(0,mobile?30:45);
+  const mn=$('hmMin'),mx=$('hmMax'),lim=hmPeriod==='7d'?20:8;
+  if(mn)mn.textContent='−'+lim+' %';if(mx)mx.textContent='+'+lim+' %';
+  if(!coins.length){wrap.innerHTML='<div class="loader-error">Aucune donnée</div>';return;}
+  const cells=layoutTreemap(coins.map(c=>({c,v:Math.pow(c.market_cap,0.6)})),W,H);
+  wrap.innerHTML=cells.map(({c,x,y,w,h})=>{
+    const p=c[key]||0,sym=symOf(c),m=Math.min(w,h),fs=Math.max(8,Math.min(22,m/4.2));
+    const showSym=w>34&&h>24,showPct=w>46&&h>40;
+    return`<a href="javascript:void(0)" class="hm-cell" data-coin-id="${escapeHTML(c.id)}" title="${escapeHTML(c.name||sym)} ${fmtPct(p)}" style="left:${(x+1).toFixed(1)}px;top:${(y+1).toFixed(1)}px;width:${Math.max(0,w-2).toFixed(1)}px;height:${Math.max(0,h-2).toFixed(1)}px;background:${hmColor(p)}">${showSym?`<b style="font-size:${fs.toFixed(1)}px">${escapeHTML(sym)}</b>`:''}${showPct?`<span style="font-size:${Math.max(8,fs*0.62).toFixed(1)}px">${fmtPct(p)}</span>`:''}</a>`;
+  }).join('');
+}
+function initHeatmap(){
+  const tabs=$('hmTabs');
+  if(tabs)tabs.addEventListener('click',e=>{
+    const b=e.target.closest('.tab[data-hm]');if(!b)return;
+    hmPeriod=b.dataset.hm;
+    tabs.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===b));
+    renderHeatmap();
+  });
+  let rt=null;
+  window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(renderHeatmap,150);});
 }
 
 async function fetchGlobal(){
@@ -4705,7 +4886,7 @@ attachRowClickHandler('loseList');
   const grid=$('triGrid'),vp=$('triViewport'),dots=$('triDots');if(!grid||!vp)return;
   const mq=window.matchMedia?window.matchMedia('(max-width:767px)'):{matches:false};
   let i=0,pause=0;
-  const go=n=>{i=(n+3)%3;grid.style.setProperty('--tri-i',i);if(dots)[...dots.children].forEach((d,k)=>d.classList.toggle('on',k===i));};
+  const N=()=>grid.children.length;const go=n=>{i=(n+N())%N();grid.style.setProperty('--tri-i',i);if(dots)[...dots.children].forEach((d,k)=>d.classList.toggle('on',k===i));};
   const hold=ms=>{pause=Date.now()+ms;};
   setInterval(()=>{
     if(!mq.matches){if(i!==0)go(0);return;}   // ordinateur : disposition d'origine, rien ne bouge
@@ -4725,6 +4906,12 @@ attachRowClickHandler('loseList');
 attachRowClickHandler('top100List');
 attachRowClickHandler('arbList');
 attachRowClickHandler('newListingsList');
+attachRowClickHandler('newList');
+attachRowClickHandler('hmWrap');
+initHeatmap();
+(function(){const b=$('newMoreBtn');if(b)b.addEventListener('click',()=>{newExpanded=!newExpanded;b.textContent=newExpanded?'Voir moins ▲':'Voir plus ▼';renderNewCard();});})();
+refreshNewCard();
+setInterval(refreshNewCard,60000);
 setupSearch();
 initStaticControls();
 initKnowledgeBase();
