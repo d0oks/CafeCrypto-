@@ -1028,7 +1028,7 @@ footer{border-top:1px solid var(--border-red);padding:16px 20px;display:flex;fle
   .col-left{display:contents;}
   .col-right{display:contents;}
   .crypto-sections{order:1;}
-  .heatmap-section{order:2;}
+  .heatmap-section{order:-1;}
   .top100-section{order:2;}
   .articles-section{order:3;}
   .pub-section{order:4;}
@@ -1126,11 +1126,9 @@ img,canvas{max-width:100%;}
 @keyframes newPulse{0%,100%{opacity:1}50%{opacity:.25}}
 .new-badge{font-family:var(--mono);font-size:.5rem;font-weight:800;letter-spacing:.5px;color:#fff;background:linear-gradient(135deg,var(--red),#f87171);padding:1px 5px;border-radius:4px;margin-left:5px;vertical-align:middle;}
 .cr-chg.chg-flat{color:var(--muted2);background:var(--s2);}
-.heatmap-section{width:100%;margin-top:20px;animation:fadeUp .5s ease both;}
-.hm-stats{display:flex;align-items:center;gap:10px;padding:12px 14px 0;font-family:var(--mono);font-size:.62rem;font-weight:800;letter-spacing:.3px;}
-.hm-stats .up{color:var(--green);white-space:nowrap;}.hm-stats .dn{color:var(--red);white-space:nowrap;}
-.hm-ratio{flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,hsl(356,72%,40%),hsl(356,72%,32%));overflow:hidden;}
-.hm-ratio i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,hsl(148,70%,30%),hsl(148,72%,42%));transition:width .8s cubic-bezier(.2,.8,.2,1);}
+.heatmap-section{width:100%;margin-top:0;animation:fadeUp .5s ease both;}
+.hm-hdr{justify-content:flex-end;}
+@media(min-width:768px){.heatmap-section+.crypto-sections{margin-top:20px;}}
 .hm-wrap{position:relative;margin:12px;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 25% 15%,rgba(255,255,255,.05),transparent 55%),var(--s2);border:1px solid rgba(255,255,255,.06);box-shadow:inset 0 0 40px rgba(0,0,0,.4);}
 .hm-bub{position:absolute;display:block;color:#fff;text-decoration:none;cursor:pointer;animation:hmFloat var(--dur,7s) ease-in-out var(--dl,0s) infinite;will-change:transform;-webkit-tap-highlight-color:transparent;}
 .hm-bub .hm-in{position:absolute;inset:0;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;overflow:hidden;line-height:1.05;text-align:center;
@@ -1152,9 +1150,6 @@ img,canvas{max-width:100%;}
 @media(prefers-reduced-motion:reduce){.hm-bub{animation:none;}.hm-anim .hm-bub .hm-in,.hm-flash .hm-in{animation:none;}}
 .cd-share-pill{display:inline-flex;align-items:center;gap:6px;padding:3px 12px;border-radius:999px;border:1px solid var(--red);background:rgba(220,38,38,.1);color:var(--red);font-family:var(--mono);font-size:.62rem;font-weight:800;letter-spacing:.3px;cursor:pointer;transition:all .2s;}
 .cd-share-pill:hover{background:var(--red);color:#fff;}
-.hm-legend{display:flex;align-items:center;gap:8px;padding:0 14px 6px;font-family:var(--mono);font-size:.58rem;color:var(--muted);}
-.hm-legend .hm-bar{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,hsl(356,75%,38%),hsl(220,12%,20%) 50%,hsl(148,72%,36%));box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);}
-.hm-note{padding:0 14px 12px;font-family:var(--mono);font-size:.55rem;color:var(--muted);line-height:1.5;}
 @media(min-width:768px){.tri-grid>.new-card{grid-column:1/-1;}}
 </style>
 </head>
@@ -1223,6 +1218,18 @@ img,canvas{max-width:100%;}
 <!-- COLONNE GAUCHE -->
 <div class="col-left">
 
+  <div class="heatmap-section">
+    <div class="crypto-section-card">
+      <div class="crypto-section-hdr hm-hdr">
+        <div class="tab-group" id="hmTabs">
+          <button class="tab active" data-hm="24h">24h</button>
+          <button class="tab" data-hm="7d">7j</button>
+        </div>
+      </div>
+      <div class="hm-wrap" id="hmWrap"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+
   <div class="crypto-sections">
     <div class="tri-viewport" id="triViewport">
     <div class="tri-grid" id="triGrid">
@@ -1270,22 +1277,6 @@ img,canvas{max-width:100%;}
     </div>
     </div>
     <div class="tri-dots" id="triDots"><i class="on"></i><i></i><i></i><i></i></div>
-  </div>
-
-  <div class="heatmap-section">
-    <div class="crypto-section-card">
-      <div class="crypto-section-hdr">
-        <div class="card-title">🗺️ Carte du marché</div>
-        <div class="tab-group" id="hmTabs">
-          <button class="tab active" data-hm="24h">24h</button>
-          <button class="tab" data-hm="7d">7j</button>
-        </div>
-      </div>
-      <div class="hm-stats" id="hmStats"></div>
-      <div class="hm-wrap" id="hmWrap"><div class="loader"><div class="spinner"></div>Chargement…</div></div>
-      <div class="hm-legend"><span id="hmMin">−8 %</span><i class="hm-bar"></i><span id="hmMax">+8 %</span></div>
-      <div class="hm-note">Taille de la bulle = capitalisation (échelle adoucie), hors stablecoins. Touche une bulle pour le détail.</div>
-    </div>
   </div>
 
   <div class="top100-section">
@@ -3602,12 +3593,7 @@ function renderHeatmap(){
   wrap.style.height=H+'px';
   const key=hmPeriod==='7d'?'price_change_percentage_7d_in_currency':'price_change_percentage_24h';
   const coins=allCoins.filter(c=>c.market_cap>0&&c[key]!=null&&!HM_STABLES.has(symOf(c))).sort((a,b)=>b.market_cap-a.market_cap).slice(0,mobile?28:40);
-  const mn=$('hmMin'),mx=$('hmMax'),lim=hmPeriod==='7d'?20:8;
-  if(mn)mn.textContent='−'+lim+' %';if(mx)mx.textContent='+'+lim+' %';
   if(!coins.length){wrap.innerHTML='<div class="loader-error">Aucune donnée</div>';hmState=null;return;}
-  // Baromètre : part des cryptos en hausse parmi celles affichées
-  const upN=coins.filter(c=>(c[key]||0)>=0).length,dnN=coins.length-upN,st=$('hmStats');
-  if(st)st.innerHTML=`<span class="up">▲ ${upN} en hausse</span><div class="hm-ratio"><i style="width:${(upN/coins.length*100).toFixed(1)}%"></i></div><span class="dn">${dnN} en baisse ▼</span>`;
   const idsKey=coins.map(c=>c.id).join('|');
   const els={};wrap.querySelectorAll('.hm-bub').forEach(e=>{els[e.dataset.coinId]=e;});
   // Mêmes cryptos, même largeur : on garde les bulles (et leur flottement), on ne change que couleurs et pourcentages
@@ -3627,11 +3613,15 @@ function renderHeatmap(){
   if(hmAnimNext){wrap.classList.add('hm-anim');setTimeout(()=>wrap.classList.remove('hm-anim'),1800);hmAnimNext=false;}
   wrap.innerHTML=coins.map((c,n)=>{
     const p=c[key]||0,sym=symOf(c),col=hmColors(p),pt=pts[n],r=pt.r,d=r*2;
-    const showSym=r>=16,showPct=r>=24,showLogo=!!c.image&&r>=36;
-    const fs=Math.max(8,Math.min(20,r*0.4)),lg=Math.round(Math.min(30,Math.max(16,r*0.5)));
+    const hasLogo=!!c.image,showPct=r>=24;
+    const lg=Math.round(showPct?Math.min(46,Math.max(18,r*0.72)):Math.max(14,r*1.3));
+    const pfs=Math.max(8,Math.min(15,r*0.3)),sfs=Math.max(8,Math.min(20,r*0.4));
     const amp=Math.min(7,3+r*0.05),dx=((hmRand(n+1)-.5)*2*amp).toFixed(1),dy=((hmRand(n+50)-.5)*2*amp).toFixed(1);
     const dur=(6+hmRand(n+99)*4).toFixed(1),dl=(-hmRand(n+7)*8).toFixed(1);
-    return`<a href="javascript:void(0)" class="hm-bub${col.t>0.75?' hot':''}" data-coin-id="${escapeHTML(c.id)}" title="${escapeHTML(c.name||sym)} ${fmtPct(p)}" style="--i:${n};--g:${col.g};--dx:${dx}px;--dy:${dy}px;--dur:${dur}s;--dl:${dl}s;left:${(pt.x-r).toFixed(1)}px;top:${(pt.y-r).toFixed(1)}px;width:${d.toFixed(1)}px;height:${d.toFixed(1)}px"><span class="hm-in" style="background:radial-gradient(circle at 34% 26%,${col.hi},${col.c1} 42%,${col.c2} 100%)">${showLogo?`<img src="${escapeHTML(c.image)}" alt="" width="${lg}" height="${lg}" loading="lazy" onerror="this.style.display='none'">`:''}${showSym?`<b class="hm-b-sym" style="font-size:${fs.toFixed(1)}px">${escapeHTML(sym)}</b>`:''}${showPct?`<i class="hm-b-pct" style="font-style:normal;font-size:${Math.max(8,fs*0.62).toFixed(1)}px">${fmtPct(p)}</i>`:''}</span></a>`;
+    const logo=hasLogo
+      ?`<img src="${escapeHTML(c.image)}" alt="" width="${lg}" height="${lg}" loading="lazy" data-s="${escapeHTML(sym)}" onerror="this.replaceWith(Object.assign(document.createElement('b'),{className:'hm-b-sym',textContent:this.dataset.s}))">`
+      :`<b class="hm-b-sym" style="font-size:${sfs.toFixed(1)}px">${escapeHTML(sym)}</b>`;   // repli : pas de logo disponible
+    return`<a href="javascript:void(0)" class="hm-bub${col.t>0.75?' hot':''}" data-coin-id="${escapeHTML(c.id)}" title="${escapeHTML(c.name||sym)} ${fmtPct(p)}" style="--i:${n};--g:${col.g};--dx:${dx}px;--dy:${dy}px;--dur:${dur}s;--dl:${dl}s;left:${(pt.x-r).toFixed(1)}px;top:${(pt.y-r).toFixed(1)}px;width:${d.toFixed(1)}px;height:${d.toFixed(1)}px"><span class="hm-in" style="background:radial-gradient(circle at 34% 26%,${col.hi},${col.c1} 42%,${col.c2} 100%)">${logo}${showPct?`<i class="hm-b-pct" style="font-style:normal;font-size:${pfs.toFixed(1)}px">${fmtPct(p)}</i>`:''}</span></a>`;
   }).join('');
   hmState={W,key:idsKey,flash:false};
 }
@@ -3902,9 +3892,6 @@ $('eventsList').addEventListener('click',function(e){
 // AIRDROPS
 // ═══════════════════════════════════════════════
 const AIRDROPS_POOL=[
-  {name:'Monad',icon:'🟣',status:'claim',statusLabel:'Réclamation',desc:"Portail de réclamation MON.",chain:'Layer 1',url:'https://www.monad.xyz'},
-  {name:'MegaETH (via GTE)',icon:'🔷',status:'farm',statusLabel:'Testnet',desc:"Faucet ETH testnet puis DEX GTE.",chain:'Testnet',url:'https://testnet.megaeth.com'},
-  {name:'Linea (LXP)',icon:'🟢',status:'farm',statusLabel:'Points',desc:"Programme de points actif.",chain:'zkEVM',url:'https://linea.build'},
   {name:'Scroll (Marks)',icon:'🟠',status:'farm',statusLabel:'Points',desc:"Saison 2 des Marks.",chain:'zkEVM',url:'https://scroll.io'}
 ];
 
@@ -3913,9 +3900,11 @@ const AD_KEY='sunuCryptoAirdropsLive';
 let airdropsLive=[],airdropsStamp=0;
 try{const c=JSON.parse(localStorage.getItem(AD_KEY)||'null');if(c&&Array.isArray(c.items)){airdropsLive=c.items;airdropsStamp=c.t||0;}}catch(e){}
 
+// Projets masqués de la section Airdrops (y compris s'ils arrivent des flux en direct)
+const AD_HIDDEN=/monad|mega\s?eth|linea/i;
 function adMerged(){
   const seen=new Set(),out=[];
-  airdropsLive.slice().sort((x,y)=>y.ts-x.ts).forEach(a=>{if(!seen.has(a.url)&&out.length<6){seen.add(a.url);out.push(a);}});
+  airdropsLive.slice().sort((x,y)=>y.ts-x.ts).forEach(a=>{if(AD_HIDDEN.test((a.name||'')+' '+(a.title||'')+' '+(a.url||'')))return;if(!seen.has(a.url)&&out.length<6){seen.add(a.url);out.push(a);}});
   AIRDROPS_POOL.forEach(a=>{if(out.length<9)out.push(Object.assign({},a,{ts:0}));});
   return out;
 }
