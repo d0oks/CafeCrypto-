@@ -1127,14 +1127,25 @@ img,canvas{max-width:100%;}
 .new-badge{font-family:var(--mono);font-size:.5rem;font-weight:800;letter-spacing:.5px;color:#fff;background:linear-gradient(135deg,var(--red),#f87171);padding:1px 5px;border-radius:4px;margin-left:5px;vertical-align:middle;}
 .cr-chg.chg-flat{color:var(--muted2);background:var(--s2);}
 .heatmap-section{width:100%;margin-top:20px;animation:fadeUp .5s ease both;}
-.hm-wrap{position:relative;margin:12px;border-radius:10px;overflow:hidden;background:var(--s2);}
-.hm-cell{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-decoration:none;overflow:hidden;border-radius:4px;transition:filter .2s;line-height:1.15;text-align:center;cursor:pointer;}
-.hm-cell:hover{filter:brightness(1.25);z-index:2;}
-.hm-cell b{font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.5);}
-.hm-cell span{font-family:var(--mono);font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,.5);}
+.hm-stats{display:flex;align-items:center;gap:10px;padding:12px 14px 0;font-family:var(--mono);font-size:.62rem;font-weight:800;letter-spacing:.3px;}
+.hm-stats .up{color:var(--green);white-space:nowrap;}.hm-stats .dn{color:var(--red);white-space:nowrap;}
+.hm-ratio{flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,hsl(356,72%,40%),hsl(356,72%,32%));overflow:hidden;}
+.hm-ratio i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,hsl(148,70%,30%),hsl(148,72%,42%));transition:width .8s cubic-bezier(.2,.8,.2,1);}
+.hm-wrap{position:relative;margin:12px;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 25% 15%,rgba(255,255,255,.05),transparent 55%),var(--s2);border:1px solid rgba(255,255,255,.06);box-shadow:inset 0 0 40px rgba(0,0,0,.4);}
+.hm-cell{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#fff;text-decoration:none;overflow:hidden;border-radius:8px;line-height:1.1;text-align:center;cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 -14px 24px rgba(0,0,0,.2),0 0 0 1px rgba(255,255,255,.04);
+  transition:transform .22s cubic-bezier(.2,.8,.2,1),filter .22s,box-shadow .22s;}
+.hm-cell:hover{transform:scale(1.04);z-index:3;filter:brightness(1.18) saturate(1.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 24px -8px rgba(0,0,0,.7);}
+.hm-cell.hot{box-shadow:inset 0 1px 0 rgba(255,255,255,.2),inset 0 -14px 24px rgba(0,0,0,.2),0 0 16px -5px var(--g);}
+.hm-cell img{border-radius:50%;object-fit:cover;background:rgba(255,255,255,.12);box-shadow:0 2px 6px rgba(0,0,0,.35);}
+.hm-cell b{font-weight:800;letter-spacing:.3px;text-shadow:0 1px 3px rgba(0,0,0,.55);}
+.hm-cell span{font-family:var(--mono);font-weight:700;background:rgba(0,0,0,.3);padding:1px 6px;border-radius:999px;text-shadow:none;}
+.hm-anim .hm-cell{animation:hmIn .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i)*16ms);}
+@keyframes hmIn{from{opacity:0;transform:scale(.86);}to{opacity:1;transform:none;}}
 .hm-legend{display:flex;align-items:center;gap:8px;padding:0 14px 6px;font-family:var(--mono);font-size:.58rem;color:var(--muted);}
-.hm-legend .hm-bar{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,#dc2626,#2a2f3a,#16a34a);}
+.hm-legend .hm-bar{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,hsl(356,75%,38%),hsl(220,12%,20%) 50%,hsl(148,72%,36%));box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);}
 .hm-note{padding:0 14px 12px;font-family:var(--mono);font-size:.55rem;color:var(--muted);line-height:1.5;}
+@media(prefers-reduced-motion:reduce){.hm-anim .hm-cell{animation:none;}.hm-cell{transition:none;}}
 @media(min-width:768px){.tri-grid>.new-card{grid-column:1/-1;}}
 </style>
 </head>
@@ -1261,6 +1272,7 @@ img,canvas{max-width:100%;}
           <button class="tab" data-hm="7d">7j</button>
         </div>
       </div>
+      <div class="hm-stats" id="hmStats"></div>
       <div class="hm-wrap" id="hmWrap"><div class="loader"><div class="spinner"></div>Chargement…</div></div>
       <div class="hm-legend"><span id="hmMin">−8 %</span><i class="hm-bar"></i><span id="hmMax">+8 %</span></div>
       <div class="hm-note">Taille = capitalisation (échelle adoucie), hors stablecoins. Touche une case pour le détail.</div>
@@ -3262,13 +3274,13 @@ async function fetchArbitrage(){
 // Upbit : il n'existe aucune fenêtre d'avance possible — la paire n'existe dans l'API
 // publique qu'à l'instant précis où le trading s'ouvre. Le repli par comparaison de tickers
 // est donc ici la détection la plus rapide qui soit techniquement possible.
-const LISTING_EX_LABELS={binance:'Binance',upbit:'Upbit'};
+const LISTING_EX_LABELS={binance:'Binance',upbit:'Upbit',mexc:'MEXC',gate:'Gate'};
 let knownListingSymbols=null,newListingsFeed=[],knownAnnouncementSymbols=null,binanceAnnouncementBroken=false;
 
 function loadKnownListings(){
   if(knownListingSymbols)return;
   knownListingSymbols={};
-  ['binance','upbit'].forEach(exId=>{
+  ['binance','upbit','mexc'].forEach(exId=>{
     try{
       const saved=localStorage.getItem('sunuCryptoListings_'+exId);
       knownListingSymbols[exId]=saved?new Set(JSON.parse(saved)):null; // null = jamais initialisé
@@ -3298,10 +3310,10 @@ function saveKnownAnnouncements(){
 
 function processListingCandidates(exId,symbols,method){
   const now=Date.now();
-  symbols.forEach(sym=>{
+  symbols.forEach((sym,idx)=>{
     newListingsFeed.unshift({ex:exId,sym,ts:now,method});
     const via=method==='annonce'?'annonce officielle':'ouverture du trading détectée';
-    showNotification(`Nouveau listing ${sym}`,`${LISTING_EX_LABELS[exId]||exId} · ${via}`,'🆕',6000);
+    if(idx<3)showNotification(`Nouveau listing ${sym}`,`${LISTING_EX_LABELS[exId]||exId} · ${via}`,'🆕',6000);
   });
   newListingsFeed=newListingsFeed.slice(0,30);
   saveListingsFeed();
@@ -3403,9 +3415,22 @@ async function fetchUpbitMarketBases(){
   }catch(e){clearTimeout(timeout);console.warn('Upbit fetch:',e.message);return null;}
 }
 
+// MEXC : liste les projets très tôt ; aucune date de listing publique, donc détection par comparaison de paires
+async function fetchMexcBases(){
+  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),9000);
+  try{
+    const r=await fetch('https://api.mexc.com/api/v3/ticker/price',{signal:controller.signal});
+    clearTimeout(timeout);
+    if(!r.ok)throw new Error('MEXC '+r.status);
+    const j=await r.json();
+    return(Array.isArray(j)?j:[]).map(x=>x.symbol||'').filter(sy=>/USDT$/.test(sy)).map(sy=>sy.slice(0,-4)).filter(b=>b&&!/\d+[LS]$/.test(b));
+  }catch(e){clearTimeout(timeout);console.warn('MEXC fetch:',e.message);return null;}
+}
 async function fetchListingWatchers(){
   const upbitBases=await fetchUpbitMarketBases();
   if(upbitBases)detectNewListingsByTicker('upbit',upbitBases);
+  const mexcBases=await fetchMexcBases();
+  if(mexcBases&&mexcBases.length>50)detectNewListingsByTicker('mexc',mexcBases);
 }
 
 function msAgo(ts){
@@ -3433,7 +3458,7 @@ function renderNewListings(){
       <span class="listing-ex">${escapeHTML(LISTING_EX_LABELS[item.ex]||item.ex)}</span>
       <span class="listing-time">${msAgo(item.ts)}</span>
     </div>`;
-  }).join('')+'<div class="listing-note">Suivi limité à Binance et Upbit. 📢 = annonce officielle lue directement · ⚡ = trading vient de s\'ouvrir (paire détectée).</div>';
+  }).join('')+'<div class="listing-note">Suivi : Binance, Upbit et MEXC. 📢 = annonce officielle lue directement · ⚡ = trading vient de s\'ouvrir (paire détectée).</div>';
 }
 
 
@@ -3457,21 +3482,44 @@ async function fetchBinanceNewBoard(){
     return out;
   }catch(e){return null;}
 }
-async function fetchBinanceTicker(sym){
+// Gate : date de début de trading (buy_start) fournie par l'API publique → historique immédiat
+let gateBoard=[],gateLast=0;
+async function fetchGateNewBoard(){
+  if(gateBoard.length&&Date.now()-gateLast<300000)return gateBoard;   // liste volumineuse : rafraîchie toutes les 5 min
+  try{
+    const j=await adFetchJson('https://api.gateio.ws/api/v4/spot/currency_pairs');
+    if(!Array.isArray(j))return gateBoard;
+    const now=Date.now(),lim=now-14*86400000,out=[];
+    j.forEach(p=>{
+      if(!p||p.quote!=='USDT'||!p.base||/\d+[LS]$/.test(p.base))return;   // ignore les jetons à effet de levier
+      const ts=(+p.buy_start||0)*1000;
+      if(!ts||ts>now||ts<lim)return;
+      out.push({sym:p.base,ts,ex:'gate',method:'listing'});
+    });
+    gateBoard=out;gateLast=now;return out;
+  }catch(e){return gateBoard;}
+}
+async function fetchExTicker(ex,sym){
   const c=new AbortController();const t=setTimeout(()=>c.abort(),7000);
   try{
-    const r=await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${encodeURIComponent(sym)}USDT`,{signal:c.signal});
-    clearTimeout(t);if(!r.ok)return null;
-    const j=await r.json();const p=parseFloat(j.lastPrice),ch=parseFloat(j.priceChangePercent);
-    return(isFinite(p)&&p>0)?{price:p,chg:isFinite(ch)?ch:0}:null;
+    const q=encodeURIComponent(sym);
+    const url=ex==='gate'?`https://api.gateio.ws/api/v4/spot/tickers?currency_pair=${q}_USDT`
+      :ex==='mexc'?`https://api.mexc.com/api/v3/ticker/24hr?symbol=${q}USDT`
+      :`https://api.binance.com/api/v3/ticker/24hr?symbol=${q}USDT`;
+    const r=await fetch(url,{signal:c.signal});clearTimeout(t);if(!r.ok)return null;
+    let j=await r.json();
+    if(ex==='gate'){j=Array.isArray(j)?j[0]:j;if(!j)return null;const p=parseFloat(j.last),ch=parseFloat(j.change_percentage);return p>0?{price:p,chg:isFinite(ch)?ch:0}:null;}
+    const p=parseFloat(j.lastPrice);let ch=parseFloat(j.priceChangePercent);
+    if(ex==='mexc'){const o=parseFloat(j.openPrice);ch=o>0?(p-o)/o*100:0;}   // calculé : évite toute ambiguïté d'unité
+    return p>0?{price:p,chg:isFinite(ch)?ch:0}:null;
   }catch(e){clearTimeout(t);return null;}
 }
 async function refreshNewCard(){
   loadKnownListings();
-  const ann=await fetchBinanceNewBoard();
+  const [ann,gate]=await Promise.all([fetchBinanceNewBoard(),fetchGateNewBoard()]);
   if(ann)newBoardAnn=ann;
   const map=new Map();
-  [...newBoardAnn,...newListingsFeed].forEach(x=>{
+  [...newBoardAnn,...(gate||[]),...newListingsFeed].forEach(x=>{
     const cur=map.get(x.sym);
     if(!cur||(x.ts||0)>cur.ts)map.set(x.sym,{sym:x.sym,ts:x.ts||0,ex:x.ex,method:x.method});
   });
@@ -3479,7 +3527,8 @@ async function refreshNewCard(){
   newBoard=[...map.values()].sort((a,b)=>b.ts-a.ts).slice(0,10).map(x=>Object.assign(x,prev[x.sym]&&prev[x.sym].price?{price:prev[x.sym].price,chg:prev[x.sym].chg}:{}));
   renderNewCard();
   await Promise.all(newBoard.map(async it=>{
-    const tk=await fetchBinanceTicker(it.sym);
+    let tk=await fetchExTicker(it.ex,it.sym);
+    if(!tk&&it.ex!=='binance')tk=await fetchExTicker('binance',it.sym);   // ex. Upbit (cotée en KRW) → prix USDT Binance
     if(tk){it.price=tk.price;it.chg=tk.chg;return;}
     const coin=Object.values(liveData).find(c=>symOf(c)===it.sym);
     if(coin&&coin.current_price){it.price=coin.current_price;it.chg=coin.price_change_percentage_24h||0;}
@@ -3490,7 +3539,7 @@ function renderNewCard(){
   const el=$('newList');if(!el)return;
   const data=newBoard.slice(0,newExpanded?10:5);
   const btn=$('newMoreBtn');if(btn)btn.style.display=newBoard.length>5?'':'none';
-  if(!data.length){el.innerHTML='<div class="loader-error">Aucun nouveau listing pour l\u2019instant</div><div class="listing-note">Annonces Binance et ouvertures détectées (Binance, Upbit), actualisées toutes les 60 s.</div>';return;}
+  if(!data.length){el.innerHTML='<div class="loader-error">Aucun nouveau listing pour l\u2019instant</div>';return;}
   el.innerHTML=data.map((it,i)=>{
     const coin=Object.values(liveData).find(c=>symOf(c)===it.sym);
     const logo=(coin&&coin.image)?`<img src="${escapeHTML(coin.image)}" alt="" loading="lazy" data-fallback="${escapeHTML(it.sym.slice(0,3))}">`:escapeHTML(it.sym.slice(0,3));
@@ -3502,11 +3551,11 @@ function renderNewCard(){
       <div class="cr-icon">${logo}</div>
       <div class="cr-info">
         <div class="cr-symbol">${escapeHTML(it.sym)}${fresh?'<span class="new-badge">NEW</span>':''}</div>
-        <div class="cr-name">${escapeHTML(LISTING_EX_LABELS[it.ex]||it.ex)}${it.ts?' · '+msAgo(it.ts):''}</div>
+        <div class="cr-name">${escapeHTML(coin?(coin.name||''):'')}</div>
       </div>
       <div class="cr-spark"></div>
       <div class="cr-right">
-        <div class="cr-price">${hasP?fmtP(it.price):'Bientôt'}</div>
+        <div class="cr-price">${hasP?fmtP(it.price):(it.method==='annonce'?'Bientôt':'—')}</div>
         <div class="cr-chg ${hasP?(up?'chg-green':'chg-red'):'chg-flat'}">${hasP?fmtPct(it.chg||0):'—'}</div>
       </div>
     </a>`;
@@ -3518,11 +3567,11 @@ function renderNewCard(){
 // ═══════════════════════════════════════════════
 const HM_STABLES=new Set(['USDT','USDC','DAI','FDUSD','USDE','TUSD','USDS','PYUSD','USD1','USDD','BUSD','USDP','GUSD','FRAX','LUSD']);
 let hmPeriod='24h';
-function hmColor(p){
-  const max=hmPeriod==='7d'?20:8,t=Math.min(Math.abs(p)/max,1);
-  const base=[42,47,58],tgt=p>=0?[22,163,74]:[220,38,38];
-  const c=base.map((b,i)=>Math.round(b+(tgt[i]-b)*t));
-  return`rgb(${c[0]},${c[1]},${c[2]})`;
+function hmColors(p){
+  const max=hmPeriod==='7d'?20:8,t=Math.min(Math.abs(p)/max,1),e=Math.pow(t,0.7);
+  if(Math.abs(p)<0.25)return{c1:'hsl(220,13%,25%)',c2:'hsl(220,14%,17%)',g:'hsl(220,13%,30%)',t};
+  const h=p>=0?148:356,sat=Math.round(22+e*53),l=Math.round(17+e*22);
+  return{c1:`hsl(${h},${sat}%,${l+8}%)`,c2:`hsl(${h},${sat}%,${Math.max(8,l-6)}%)`,g:`hsl(${h},${Math.min(85,sat+10)}%,${l+14}%)`,t};
 }
 // Treemap « squarified » : items triés par valeur décroissante
 function layoutTreemap(items,W,H){
@@ -3545,6 +3594,7 @@ function layoutTreemap(items,W,H){
   if(row.length)place(row);
   return out;
 }
+let hmAnimNext=true;
 function renderHeatmap(){
   const wrap=$('hmWrap');if(!wrap||!allCoins||!allCoins.length)return;
   const W=wrap.clientWidth;if(W<50)return;
@@ -3555,18 +3605,24 @@ function renderHeatmap(){
   const mn=$('hmMin'),mx=$('hmMax'),lim=hmPeriod==='7d'?20:8;
   if(mn)mn.textContent='−'+lim+' %';if(mx)mx.textContent='+'+lim+' %';
   if(!coins.length){wrap.innerHTML='<div class="loader-error">Aucune donnée</div>';return;}
+  // Baromètre : part des cryptos en hausse parmi celles affichées
+  const upN=coins.filter(c=>(c[key]||0)>=0).length,dnN=coins.length-upN,st=$('hmStats');
+  if(st)st.innerHTML=`<span class="up">▲ ${upN} en hausse</span><div class="hm-ratio"><i style="width:${(upN/coins.length*100).toFixed(1)}%"></i></div><span class="dn">${dnN} en baisse ▼</span>`;
   const cells=layoutTreemap(coins.map(c=>({c,v:Math.pow(c.market_cap,0.6)})),W,H);
-  wrap.innerHTML=cells.map(({c,x,y,w,h})=>{
+  if(hmAnimNext){wrap.classList.add('hm-anim');setTimeout(()=>wrap.classList.remove('hm-anim'),1400);hmAnimNext=false;}
+  wrap.innerHTML=cells.map(({c,x,y,w,h},n)=>{
     const p=c[key]||0,sym=symOf(c),m=Math.min(w,h),fs=Math.max(8,Math.min(22,m/4.2));
-    const showSym=w>34&&h>24,showPct=w>46&&h>40;
-    return`<a href="javascript:void(0)" class="hm-cell" data-coin-id="${escapeHTML(c.id)}" title="${escapeHTML(c.name||sym)} ${fmtPct(p)}" style="left:${(x+1).toFixed(1)}px;top:${(y+1).toFixed(1)}px;width:${Math.max(0,w-2).toFixed(1)}px;height:${Math.max(0,h-2).toFixed(1)}px;background:${hmColor(p)}">${showSym?`<b style="font-size:${fs.toFixed(1)}px">${escapeHTML(sym)}</b>`:''}${showPct?`<span style="font-size:${Math.max(8,fs*0.62).toFixed(1)}px">${fmtPct(p)}</span>`:''}</a>`;
+    const col=hmColors(p);
+    const showSym=w>34&&h>24,showPct=w>46&&h>40,showLogo=!!c.image&&m>62;
+    const lg=Math.round(Math.min(28,Math.max(15,m/3.6)));
+    return`<a href="javascript:void(0)" class="hm-cell${col.t>0.75?' hot':''}" data-coin-id="${escapeHTML(c.id)}" title="${escapeHTML(c.name||sym)} ${fmtPct(p)}" style="--i:${n};--g:${col.g};left:${(x+1.5).toFixed(1)}px;top:${(y+1.5).toFixed(1)}px;width:${Math.max(0,w-3).toFixed(1)}px;height:${Math.max(0,h-3).toFixed(1)}px;background:linear-gradient(145deg,${col.c1},${col.c2})">${showLogo?`<img src="${escapeHTML(c.image)}" alt="" width="${lg}" height="${lg}" loading="lazy" onerror="this.style.display='none'">`:''}${showSym?`<b style="font-size:${fs.toFixed(1)}px">${escapeHTML(sym)}</b>`:''}${showPct?`<span style="font-size:${Math.max(8,fs*0.6).toFixed(1)}px">${fmtPct(p)}</span>`:''}</a>`;
   }).join('');
 }
 function initHeatmap(){
   const tabs=$('hmTabs');
   if(tabs)tabs.addEventListener('click',e=>{
     const b=e.target.closest('.tab[data-hm]');if(!b)return;
-    hmPeriod=b.dataset.hm;
+    hmPeriod=b.dataset.hm;hmAnimNext=true;
     tabs.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===b));
     renderHeatmap();
   });
